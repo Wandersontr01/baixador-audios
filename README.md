@@ -9,12 +9,27 @@ Tudo roda no seu PC.
 Repositorio pessoal e privado. Os executaveis **nao** ficam no git (o `avcodec` sozinho passa do
 limite de 100 MB do GitHub); cada maquina baixa os seus na primeira vez.
 
+### 1. Pegar o codigo (escolha um)
+
+**Opcao A - Download do ZIP** (mais simples, para maquinas onde voce so vai usar o app)
+
+1. Abra https://github.com/Wandersontr01/baixador-audios **logado na sua conta** (repo privado).
+2. Clique em **Code > Download ZIP**.
+3. **Antes de extrair:** botao direito no ZIP > **Propriedades** > marque **Desbloquear** > OK.
+   Sem isso o Windows marca os arquivos como "vindos da internet" e mostra um aviso de seguranca
+   ao abrir o `.vbs`/`.bat` (se esquecer, e so confirmar o aviso).
+4. Extraia. A pasta vem como `baixador-audios-main`; pode renomear e colocar onde quiser.
+
+**Opcao B - git clone** (para a maquina onde voce mexe no codigo, ou para atualizar com um comando)
+
 ```
 git clone https://github.com/Wandersontr01/baixador-audios.git
 ```
 
-Depois e so abrir o **`ABRIR BAIXADOR.vbs`**: na primeira vez ele pergunta e roda o
-**`PREPARAR.bat`**, que baixa para dentro da pasta (nada e instalado no Windows):
+### 2. Primeira execucao
+
+Abra o **`ABRIR BAIXADOR.vbs`**: na primeira vez ele pergunta e roda o **`PREPARAR.bat`**, que
+baixa para dentro da pasta (nada e instalado no Windows):
 
 | Pasta | Conteudo | Origem |
 |---|---|---|
@@ -23,11 +38,17 @@ Depois e so abrir o **`ABRIR BAIXADOR.vbs`**: na primeira vez ele pergunta e rod
 | `bin\ffmpeg.exe`, `ffprobe.exe` e `.dll` | Conversao e capa/titulo | GitHub yt-dlp/FFmpeg-Builds |
 
 Cada download e conferido pelo SHA-256 publicado pelo proprio projeto. Para baixar tudo de novo:
-`PREPARAR.bat -Forcar`. Sem git, tambem funciona baixar o ZIP do repositorio (botao **Code >
-Download ZIP**) e seguir igual.
+`PREPARAR.bat -Forcar`.
 
-**Atualizar o codigo nas outras maquinas:** `git pull` (o yt-dlp se atualiza sozinho a cada 3
-dias). `config.json` e `baixador.log` sao por maquina e ficam fora do git.
+### 3. Atualizar para uma versao nova do codigo
+
+- **Com git:** `git pull` dentro da pasta.
+- **Com ZIP:** baixe o ZIP de novo (desbloqueie, passo 3 acima) e extraia **por cima** da pasta
+  atual, substituindo os arquivos. O ZIP nao traz `bin\`, `runtime\` nem `config.json`, entao os
+  executaveis e suas configuracoes ficam como estao.
+
+O yt-dlp se atualiza sozinho a cada 3 dias em qualquer das opcoes. `config.json` e `baixador.log`
+sao por maquina e ficam fora do git.
 
 > Em PCs corporativos, politicas de seguranca (AppLocker, antivirus) podem bloquear executaveis
 > fora de `Arquivos de Programas`. Na primeira execucao o antivirus pode demorar para liberar o
