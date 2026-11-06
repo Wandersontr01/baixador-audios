@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baixador de Audios</title>
+<style>
+  :root{ --bg:#0f172a; --card:#1e293b; --line:#334155; --txt:#e2e8f0; --mut:#94a3b8;
+         --azul:#2563eb; --verde:#16a34a; --vermelho:#dc2626; --amarelo:#d97706; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
+  header{background:var(--card);border-bottom:1px solid var(--line);padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
+  header h1{font-size:17px;margin:0;font-weight:600}
+  .tools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+  .badge{padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:#334155}
+  .badge.ok{background:#14532d;color:#bbf7d0}.badge.bad{background:#7f1d1d;color:#fecaca}.badge.warn{background:#78350f;color:#fde68a}
+  main{padding:20px;max-width:1100px;margin:0 auto}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+  .card h2{font-size:14px;margin:0 0 12px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:10px}
+  .card h2 .sp{margin-left:auto}
+  label{display:block;font-size:12px;color:var(--mut);margin:8px 0 4px}
+  input[type=text],select,textarea{width:100%;background:var(--bg);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:14px;font-family:inherit}
+  textarea{min-height:92px;resize:vertical}
+  select{width:auto}
+  button{cursor:pointer;border:none;border-radius:7px;padding:9px 16px;font-size:14px;font-weight:600;color:#fff;background:var(--azul)}
+  button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
+  button.verde{background:var(--verde)} button.verm{background:var(--vermelho)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  button.mini{padding:3px 10px;font-size:12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .grow{flex:1;min-width:220px}
+  .hide{display:none !important}
+  .muted{color:var(--mut)} .small{font-size:12px}
+  .ok{color:#4ade80}.warn{color:#fbbf24}.bad{color:#f87171}
+  .chk{display:flex;align-items:center;gap:6px;color:var(--txt);font-size:13px;margin:0}
+  .banner{border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;border:1px solid}
+  .banner.warn{background:#3b2f12;border-color:#78350f}
+  .banner.bad{background:#3b1414;border-color:#7f1d1d}
+  .banner.info{background:#0b1d3a;border-color:#1e3a8a}
+  .bar{height:8px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:6px}
+  .bar>div{height:100%;background:var(--azul);width:0%;transition:width .3s}
+  .bar.conv>div{background:var(--amarelo)} .bar.done>div{background:var(--verde)}
+  .job{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#172033}
+  .job .top{display:flex;gap:10px;align-items:flex-start}
+  .job .tit{font-weight:600;word-break:break-word}
+  .job .url{font-size:12px;color:var(--mut);word-break:break-all}
+  .job .acts{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
+  .job .meta{font-size:12px;color:var(--mut);margin-top:4px}
+  .job .err{font-size:12px;color:#fecaca;margin-top:6px;white-space:pre-wrap;word-break:break-word}
+  .job .dica{font-size:12px;color:#fde68a;margin-top:4px}
+  .pill{font-size:11px;padding:1px 8px;border-radius:999px;font-weight:600;flex-shrink:0;white-space:nowrap}
+  .st-fila{background:#334155}.st-baixando{background:#1e3a8a;color:#bfdbfe}.st-convertendo{background:#78350f;color:#fde68a}
+  .st-concluido{background:#14532d;color:#bbf7d0}.st-parcial{background:#78350f;color:#fde68a}
+  .st-erro{background:#7f1d1d;color:#fecaca}.st-cancelado,.st-pulado{background:#334155;color:#cbd5e1}
+  .vazio{color:var(--mut);text-align:center;padding:18px 0}
+  .modalbg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modalbox{background:var(--card);border:1px solid var(--line);border-radius:10px;width:min(900px,100%);max-height:85vh;overflow:auto;padding:16px}
+  .modalbox pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:#0b1220;padding:10px;border-radius:8px;border:1px solid var(--line)}
+  a{color:#93c5fd}
+  .bm{display:inline-block;padding:6px 12px;border:1px dashed #60a5fa;border-radius:7px;text-decoration:none;font-weight:600}
+  .sel-list{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:10px}
+  .sel-item{display:flex;gap:10px;align-items:center;padding:7px 10px;border-bottom:1px solid #263247;cursor:pointer;margin:0;color:var(--txt);font-size:13px}
+  .sel-item:last-child{border-bottom:none}
+  .sel-item:hover{background:#1b2740}
+  .sel-item.dis{opacity:.45;cursor:not-allowed}
+  .sel-item .ix{color:var(--mut);width:34px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .sel-item .tx{min-width:0;flex:1}
+  .sel-item .tx div:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sel-item .tg{font-size:11px;padding:1px 7px;border-radius:999px;background:#334155;color:#cbd5e1;flex-shrink:0}
+  .sel-item .tg.ok{background:#14532d;color:#bbf7d0}
+  .sel-count{font-weight:700;font-variant-numeric:tabular-nums}
+  .sel-count.max{color:#fbbf24}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid #475569;border-top-color:#60a5fa;border-radius:50%;animation:gira .8s linear infinite;vertical-align:-2px;margin-right:6px}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0b1220;border:1px solid var(--line);padding:9px 16px;border-radius:8px;font-size:13px;z-index:60;max-width:90vw}
+  @media (max-width:640px){ .job .top{flex-wrap:wrap} .job .acts{margin-left:0} }
+</style>
+</head>
+<body>
+<header>
+  <h1>🎧 Baixador de Audios</h1>
+  <div class="tools">
+    <span id="bYt" class="badge">yt-dlp…</span>
+    <span id="bFf" class="badge">FFmpeg…</span>
+    <button class="ghost mini" id="btnEncerrar" title="Encerra o servidor do Baixador">Encerrar</button>
+  </div>
+</header>
+
+<main>
+  <div id="bannerYt" class="banner hide"></div>
+  <div id="bannerNode" class="banner warn hide"></div>
+
+  <div class="card">
+    <h2>1. Adicionar</h2>
+    <label for="urls">Links (um por linha, até 30 por vez) — YouTube, YouTube Music e outros sites suportados pelo yt-dlp</label>
+    <textarea id="urls" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/..."></textarea>
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label for="formato">Formato</label>
+        <select id="formato">
+          <option value="m4a">M4A — original, sem perda (recomendado)</option>
+          <option value="mp3">MP3 — compatibilidade máxima</option>
+          <option value="opus">OPUS — original, menor tamanho</option>
+          <option value="ogg">OGG — Vorbis, convertido</option>
+        </select>
+      </div>
+      <div id="qWrap">
+        <label for="qualidade">Qualidade</label>
+        <select id="qualidade">
+          <option value="128">128 kbps</option>
+          <option value="192">192 kbps</option>
+          <option value="256">256 kbps</option>
+          <option value="320">320 kbps</option>
+        </select>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <label class="chk" title="Links só de playlist (sem vídeo específico) sempre abrem a seleção"><input type="checkbox" id="playlist" checked> Link de playlist: escolher as faixas <span class="muted">(desmarcado = só o vídeo do link)</span></label>
+      </div>
+    </div>
+    <div class="row" style="margin-top:14px">
+      <button id="btnBaixar" class="verde">Baixar áudio</button>
+      <button id="btnColar" class="ghost">Colar da área de transferência</button>
+      <span id="addMsg" class="small muted"></span>
+    </div>
+    <div id="ffAviso" class="small warn hide" style="margin-top:8px"></div>
+  </div>
+
+  <div class="card">
+    <h2>2. Downloads <span class="sp"></span>
+      <button class="verm mini hide" id="btnCancelarTodos">Cancelar todos</button>
+      <button class="ghost mini" id="btnAbrirPasta">Abrir pasta</button>
+      <button class="ghost mini" id="btnLimpar">Limpar concluídos</button>
+    </h2>
+    <div id="lista"><div class="vazio">Nenhum download ainda.</div></div>
+  </div>
+
+  <div class="card">
+    <h2>3. Configurações</h2>
+    <label for="pasta">Pasta onde os áudios são salvos</label>
+    <div class="row">
+      <input type="text" id="pasta" class="grow">
+      <button class="ghost" id="btnEscolher">Escolher…</button>
+      <button id="btnSalvarPasta">Salvar</button>
+    </div>
+    <div class="row" style="margin-top:12px;gap:22px">
+      <label class="chk"><input type="checkbox" id="pular"> Pular vídeos já baixados (no mesmo formato)</label>
+      <div class="row" style="gap:6px">
+        <span class="small muted">Usar cookies do navegador:</span>
+        <select id="cookies">
+          <option value="">não usar</option>
+          <option value="firefox">Firefox</option>
+          <option value="edge">Edge</option>
+          <option value="chrome">Chrome</option>
+          <option value="brave">Brave</option>
+        </select>
+      </div>
+    </div>
+    <div class="small muted" style="margin-top:6px">Cookies só são necessários para vídeos com restrição de idade, de membros, ou quando o YouTube pedir verificação. Chrome/Edge precisam estar fechados para isso funcionar; o Firefox funciona aberto.</div>
+
+    <div class="row" style="margin-top:16px">
+      <button class="ghost" id="btnAtualizar">Atualizar yt-dlp</button>
+      <button class="ghost" id="btnFfVerificar">Verificar FFmpeg</button>
+      <button class="ghost" id="btnFfInstalar">Instalar FFmpeg (winget)</button>
+      <span id="cfgMsg" class="small muted"></span>
+    </div>
+
+    <label style="margin-top:16px">Botão para a barra de favoritos — arraste para a barra e clique nele em qualquer vídeo do YouTube:</label>
+    <a id="bookmarklet" class="bm" href="#">🎧 Baixar áudio</a>
+  </div>
+</main>
+
+<div id="modal" class="modalbg hide">
+  <div class="modalbox">
+    <div class="row"><b id="mTit">Log</b><span class="grow"></span><button class="ghost mini" id="mFechar">Fechar</button></div>
+    <label>Comando executado</label><pre id="mCmd"></pre>
+    <label>Saída do yt-dlp</label><pre id="mLog"></pre>
+  </div>
+</div>
+<div id="sel" class="modalbg hide">
+  <div class="modalbox">
+    <div class="row"><b id="selTit">Playlist</b><span class="grow"></span><button class="ghost mini" id="selFechar">Fechar</button></div>
+    <div id="selInfo" class="small muted" style="margin-top:4px"></div>
+    <div id="selCorpo">
+      <div class="row" style="margin-top:12px">
+        <input type="text" id="selBusca" class="grow" placeholder="Filtrar por título ou artista…">
+        <button class="ghost mini" id="selPrimeiras">Marcar as primeiras 30 (não baixadas)</button>
+        <button class="ghost mini" id="selNenhuma">Desmarcar todas</button>
+      </div>
+      <div class="sel-list" id="selLista"></div>
+      <div class="row" style="margin-top:12px">
+        <span class="small">Selecionadas: <span id="selCount" class="sel-count">0 / 30</span></span>
+        <span class="small muted" id="selDica">Shift+clique marca um intervalo.</span>
+        <span class="grow"></span>
+        <button class="verde" id="selBaixar" disabled>Baixar selecionadas</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast" class="hide"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let estado = null, cfgCarregada = false, encerrado = false;
+
+async function api(rota, corpo) {
+  const r = await fetch(rota, corpo === undefined ? {} : { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(corpo) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.erro || ('HTTP ' + r.status));
+  return j;
+}
+function toast(msg, ms = 3500) {
+  const t = $('toast'); t.textContent = msg; t.classList.remove('hide');
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.add('hide'), ms);
+}
+
+const NOMES = { fila:'Na fila', baixando:'Baixando', convertendo:'Convertendo', concluido:'Concluído', parcial:'Concluído c/ erros', erro:'Erro', cancelado:'Cancelado', pulado:'Já baixado' };
+
+function renderSetup(s) {
+  const bYt = $('bYt'), ban = $('bannerYt');
+  if (s.ytdlp === 'ok') { bYt.className = 'badge ok'; bYt.textContent = 'yt-dlp ' + s.ytdlpVersao + (s.atualizando ? ' (atualizando…)' : ''); ban.classList.add('hide'); }
+  else if (s.ytdlp === 'baixando') { bYt.className = 'badge warn'; bYt.textContent = 'yt-dlp baixando ' + s.ytdlpPct + '%';
+    ban.className = 'banner info'; ban.innerHTML = 'Primeira execução: baixando o yt-dlp (' + s.ytdlpPct + '%). Os downloads começam assim que terminar.'; }
+  else if (s.ytdlp === 'erro') { bYt.className = 'badge bad'; bYt.textContent = 'yt-dlp com erro';
+    ban.className = 'banner bad'; ban.innerHTML = '<b>Não foi possível preparar o yt-dlp.</b> ' + esc(s.ytdlpErro) + ' <button class="mini" id="btnRetryYt">Tentar de novo</button>';
+    $('btnRetryYt').onclick = () => api('/api/ytdlp/baixar', {}).catch(e => toast(e.message)); }
+  else { bYt.className = 'badge'; bYt.textContent = 'yt-dlp verificando…'; }
+
+  const bFf = $('bFf');
+  if (s.ffmpegInstalando) { bFf.className = 'badge warn'; bFf.textContent = 'FFmpeg instalando…'; }
+  else if (s.ffmpeg) { bFf.className = 'badge ok'; bFf.textContent = 'FFmpeg OK'; }
+  else { bFf.className = 'badge warn'; bFf.textContent = 'Sem FFmpeg'; }
+  $('btnFfInstalar').classList.toggle('hide', !!s.ffmpeg);
+  $('btnFfInstalar').disabled = !!s.ffmpegInstalando;
+  if (s.ffmpegMsg && !$('cfgMsg').dataset.fixo) $('cfgMsg').textContent = s.ffmpegMsg;
+  $('btnAtualizar').disabled = !!s.atualizando || s.ytdlp !== 'ok';
+
+  const opMp3 = $('formato').querySelector('option[value=mp3]'), opOpus = $('formato').querySelector('option[value=opus]'), opOgg = $('formato').querySelector('option[value=ogg]');
+  opOgg.disabled = !s.ffmpeg;
+  opMp3.disabled = opOpus.disabled = !s.ffmpeg;
+  if (!s.ffmpeg && $('formato').value !== 'm4a') $('formato').value = 'm4a';
+  const av = $('ffAviso');
+  av.classList.toggle('hide', !!s.ffmpeg);
+  av.textContent = 'Sem FFmpeg: só M4A está disponível e a capa/título não são gravados no arquivo. Instale em Configurações para liberar MP3/OPUS/OGG.';
+  $('qWrap').classList.toggle('hide', !temQualidade($('formato').value));
+
+  const bn = $('bannerNode');
+  bn.classList.toggle('hide', !s.nodeAntigo);
+  bn.textContent = 'Seu Node.js é a versão ' + s.nodeVersao + '. O yt-dlp precisa do Node 20 ou superior para resolver os desafios do YouTube; instale a versão LTS atual em nodejs.org.';
+}
+
+function renderJobs(jobs) {
+  const el = $('lista');
+  const pendentes = jobs.filter(j => ['fila','baixando','convertendo'].includes(j.status)).length;
+  $('btnCancelarTodos').classList.toggle('hide', !pendentes);
+  $('btnCancelarTodos').textContent = 'Cancelar todos (' + pendentes + ')';
+  if (!jobs.length) { el.innerHTML = '<div class="vazio">Nenhum download ainda.</div>'; return; }
+  el.innerHTML = jobs.slice().reverse().map(j => {
+    const ativo = j.status === 'baixando' || j.status === 'convertendo';
+    const fim = ['concluido','parcial','pulado'].includes(j.status);
+    const pct = fim ? 100 : (j.pct || 0);
+    const barCls = j.status === 'convertendo' ? 'conv' : (fim ? 'done' : '');
+    let meta = j.formato.toUpperCase() + (temQualidade(j.formato) ? (j.formato === 'ogg' ? ' ~' : ' ') + j.qualidade + ' kbps' : '') + (j.subpasta ? ' · ' + esc(j.subpasta) + (j.indice ? ' #' + j.indice : '') : '');
+    if (j.status === 'baixando') meta += ' · ' + pct.toFixed(1) + '%' + (j.vel ? ' · ' + esc(j.vel) : '') + (j.eta && j.eta !== 'Unknown' ? ' · faltam ' + esc(j.eta) : '');
+    if (j.status === 'convertendo') meta += ' · convertendo / gravando capa…';
+    if (j.arquivos.length) meta += ' · ' + j.arquivos.length + ' arquivo(s)';
+    if (j.status === 'pulado') meta += ' · já estava na pasta (desmarque "Pular já baixados" para baixar de novo)';
+    const arquivos = j.arquivos.length ? '<div class="meta ok">' + j.arquivos.slice(-3).map(esc).join('<br>') + (j.arquivos.length > 3 ? '<br>…' : '') + '</div>' : '';
+    const erros = j.erros.length ? '<div class="err">' + esc(j.erros.slice(-3).join('\n')) + '</div>' : '';
+    const dica = j.dica ? '<div class="dica">💡 ' + esc(j.dica) + '</div>' : '';
+    const acts = [
+      (j.status === 'fila' || ativo) ? '<button class="verm mini" data-a="cancelar" data-id="' + j.id + '">Cancelar</button>' : '',
+      j.arquivos.length ? '<button class="ghost mini" data-a="abrir" data-id="' + j.id + '">Mostrar</button>' : '',
+      ['erro','cancelado','parcial'].includes(j.status) ? '<button class="ghost mini" data-a="repetir" data-id="' + j.id + '">Tentar de novo</button>' : '',
+      j.status !== 'fila' ? '<button class="ghost mini" data-a="log" data-id="' + j.id + '">Log</button>' : ''
+    ].join('');
+    return '<div class="job"><div class="top"><span class="pill st-' + j.status + '">' + NOMES[j.status] + '</span>' +
+      '<div style="min-width:0"><div class="tit">' + esc(j.titulo || ({ pulado:'Já estava baixado', erro:'Não foi possível obter o vídeo', cancelado:'Cancelado' }[j.status] || 'Aguardando informações…')) + '</div><div class="url">' + esc(j.url) + '</div></div>' +
+      '<div class="acts">' + acts + '</div></div>' +
+      (j.status !== 'fila' && j.status !== 'cancelado' && j.status !== 'erro' ? '<div class="bar ' + barCls + '"><div style="width:' + pct + '%"></div></div>' : '') +
+      '<div class="meta">' + meta + '</div>' + arquivos + erros + dica + '</div>';
+  }).join('');
+}
+
+function renderConfig(c) {
+  if (cfgCarregada) return;
+  cfgCarregada = true;
+  $('pasta').value = c.pastaSaida;
+  $('formato').value = c.formato;
+  $('qualidade').value = c.qualidadeMp3;
+  $('pular').checked = !!c.pularBaixados;
+  $('cookies').value = c.cookiesNavegador || '';
+}
+
+async function atualizar() {
+  try {
+    estado = await api('/api/estado');
+    renderConfig(estado.config);
+    renderSetup(estado.setup);
+    renderJobs(estado.jobs);
+  } catch (e) {
+    $('bYt').className = 'badge bad'; $('bYt').textContent = 'Servidor fechado';
+    $('bannerYt').className = 'banner bad';
+    $('bannerYt').innerHTML = encerrado ? 'Baixador encerrado. Para usar de novo, abra o <b>ABRIR BAIXADOR</b> na pasta do programa.' : 'Sem conexão com o servidor. Abra de novo o <b>ABRIR BAIXADOR</b> na pasta do programa.';
+  }
+}
+
+const MAX = 30;
+// formatos recodificados, que tem seletor de qualidade
+const temQualidade = f => f === 'mp3' || f === 'ogg';
+
+// Link que aponta para uma lista (playlist, album, canal) em vez de um unico video
+function tipoLink(u) {
+  let x; try { x = new URL(u); } catch (e) { return 'video'; }
+  const yt = /(^|\.)(youtube\.com|youtu\.be)$/i.test(x.hostname);
+  if (!yt) return 'video';
+  const temVideo = x.searchParams.has('v') || x.hostname.toLowerCase().endsWith('youtu.be') || /^\/(shorts|live)\//.test(x.pathname);
+  const temLista = x.searchParams.has('list') || /^\/(playlist|browse)\b/.test(x.pathname) || /^\/(@|channel\/|c\/|user\/)/.test(x.pathname);
+  if (temLista && !temVideo) return 'lista';     // so lista: sempre abre a selecao
+  if (temLista && temVideo) return 'ambos';      // video dentro de playlist: depende da opcao
+  return 'video';
+}
+
+async function adicionar(urls) {
+  if (!urls.length) { toast('Cole ao menos um link.'); return; }
+  const escolher = $('playlist').checked;
+  const listas = urls.filter(u => { const t = tipoLink(u); return t === 'lista' || (t === 'ambos' && escolher); });
+  const soltas = urls.filter(u => !listas.includes(u));
+  if (soltas.length > MAX) { toast('Limite de ' + MAX + ' links por vez (você colou ' + soltas.length + '). Divida em partes.', 6000); return; }
+
+  let resto = listas.slice(1);
+  if (soltas.length) {
+    try {
+      const r = await api('/api/baixar', { urls: soltas, formato: $('formato').value, qualidade: $('qualidade').value });
+      $('addMsg').textContent = r.adicionados + ' adicionado(s) à fila' + (r.invalidas.length ? ' · ignorados (link inválido): ' + r.invalidas.join(', ') : '');
+      atualizar();
+    } catch (e) { toast(e.message, 6000); return; }
+  }
+  $('urls').value = resto.join('\n');
+  if (listas.length) {
+    if (resto.length) toast('Uma playlist por vez: abrindo a primeira. As outras ficaram no campo de links.', 6000);
+    abrirSelecao(listas[0]);
+  }
+}
+
+// ---------- selecao de faixas da playlist ----------
+let sel = null;   // { titulo, itens, marcados:Set(indice da lista), ultimo }
+
+// mesmo tratamento do servidor: caracteres proibidos no Windows viram espaco
+const nomePasta = t => (String(t || '').replace(/[<>:"/\\|?*\x00-\x1f]/g, ' ').replace(/\s+/g, ' ').trim().replace(/[. ]+$/, '').slice(0, 100) || 'Playlist');
+
+function fmtDur(s) {
+  if (!s) return '';
+  s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), ss = String(s % 60).padStart(2, '0');
+  return h ? h + ':' + String(m).padStart(2, '0') + ':' + ss : m + ':' + ss;
+}
+
+async function abrirSelecao(url) {
+  sel = null;
+  $('sel').classList.remove('hide');
+  $('selTit').textContent = 'Lendo a playlist…';
+  $('selInfo').innerHTML = '<span class="spin"></span>Buscando a lista de faixas (pode levar alguns segundos em playlists grandes)…';
+  $('selCorpo').classList.add('hide');
+  try {
+    const r = await api('/api/listar', { url });
+    if (!r.ehPlaylist || !r.itens.length) {
+      $('sel').classList.add('hide');
+      if (tipoLink(url) === 'ambos') { toast('Não encontrei a playlist; baixando só o vídeo do link.'); return api('/api/baixar', { urls: [url], formato: $('formato').value, qualidade: $('qualidade').value }).then(atualizar).catch(e => toast(e.message)); }
+      return toast('Esse link não tem faixas para listar.', 5000);
+    }
+    let v = null; try { v = new URL(url).searchParams.get('v'); } catch (e) {}
+    sel = { titulo: r.titulo, itens: r.itens, marcados: new Set(), ultimo: null };
+    r.itens.forEach((it, i) => { if (v && it.id === v && !it.indisponivel) sel.marcados.add(i); });
+    $('selTit').textContent = r.titulo;
+    const nBaix = r.itens.filter(i => i.jaBaixado).length, nInd = r.itens.filter(i => i.indisponivel).length;
+    $('selInfo').textContent = r.itens.length + ' faixa(s)' + (r.truncado ? ' (mostrando as primeiras ' + r.itens.length + ')' : '') +
+      (nBaix ? ' · ' + nBaix + ' já baixada(s) em ' + $('formato').value.toUpperCase() : '') + (nInd ? ' · ' + nInd + ' indisponível(is)' : '') +
+      ' · salvas na subpasta "' + nomePasta(r.titulo) + '"';
+    $('selBusca').value = '';
+    $('selCorpo').classList.remove('hide');
+    renderSelecao();
+  } catch (e) {
+    $('selTit').textContent = 'Não foi possível ler a playlist';
+    $('selInfo').innerHTML = '<span class="bad">' + esc(e.message) + '</span>';
+  }
+}
+
+function renderSelecao() {
+  if (!sel) return;
+  const filtro = $('selBusca').value.trim().toLowerCase();
+  const cheio = sel.marcados.size >= MAX;
+  $('selLista').innerHTML = sel.itens.map((it, i) => {
+    if (filtro && !(it.titulo + ' ' + it.canal).toLowerCase().includes(filtro)) return '';
+    const marcado = sel.marcados.has(i);
+    const dis = it.indisponivel || (cheio && !marcado);
+    const tags = (it.jaBaixado ? '<span class="tg ok">já baixada</span>' : '') + (it.indisponivel ? '<span class="tg">indisponível</span>' : '');
+    return '<label class="sel-item' + (dis ? ' dis' : '') + '" data-i="' + i + '"><input type="checkbox"' + (marcado ? ' checked' : '') + (dis ? ' disabled' : '') + '>' +
+      '<span class="ix">' + it.indice + '</span><span class="tx"><div>' + esc(it.titulo) + '</div><div class="small muted">' +
+      esc([it.canal, fmtDur(it.duracao)].filter(Boolean).join(' · ')) + '</div></span>' + tags + '</label>';
+  }).join('') || '<div class="vazio">Nenhuma faixa com esse filtro.</div>';
+  const n = sel.marcados.size;
+  $('selCount').textContent = n + ' / ' + MAX;
+  $('selCount').classList.toggle('max', cheio);
+  $('selDica').textContent = cheio ? 'Limite de ' + MAX + ' por vez atingido. Baixe estas e depois selecione as próximas.' : 'Shift+clique marca um intervalo.';
+  $('selBaixar').disabled = !n;
+  $('selBaixar').textContent = n ? 'Baixar ' + n + ' faixa(s)' : 'Baixar selecionadas';
+}
+
+function marcar(i, valor) {
+  const it = sel.itens[i];
+  if (!it || it.indisponivel) return;
+  if (valor && !sel.marcados.has(i) && sel.marcados.size >= MAX) return;
+  valor ? sel.marcados.add(i) : sel.marcados.delete(i);
+}
+
+$('selLista').addEventListener('click', e => {
+  const row = e.target.closest('.sel-item'); if (!row || !sel) return;
+  e.preventDefault();
+  const i = +row.dataset.i, novo = !sel.marcados.has(i);
+  if (e.shiftKey && sel.ultimo !== null) {
+    const filtro = $('selBusca').value.trim().toLowerCase();
+    const [a, b] = [Math.min(sel.ultimo, i), Math.max(sel.ultimo, i)];
+    for (let k = a; k <= b; k++) {
+      const it = sel.itens[k];
+      if (filtro && !(it.titulo + ' ' + it.canal).toLowerCase().includes(filtro)) continue;
+      marcar(k, novo);
+    }
+  } else marcar(i, novo);
+  sel.ultimo = i;
+  renderSelecao();
+});
+$('selBusca').oninput = renderSelecao;
+$('selPrimeiras').onclick = () => {
+  if (!sel) return;
+  sel.marcados.clear();
+  sel.itens.forEach((it, i) => { if (!it.jaBaixado) marcar(i, true); });
+  renderSelecao();
+};
+$('selNenhuma').onclick = () => { if (sel) { sel.marcados.clear(); renderSelecao(); } };
+$('selFechar').onclick = () => $('sel').classList.add('hide');
+$('sel').onclick = e => { if (e.target === $('sel')) $('sel').classList.add('hide'); };
+$('selBaixar').onclick = async () => {
+  if (!sel || !sel.marcados.size) return;
+  const itens = [...sel.marcados].sort((a, b) => a - b).map(i => ({ url: sel.itens[i].url, titulo: sel.itens[i].titulo, indice: sel.itens[i].indice }));
+  try {
+    const r = await api('/api/baixar', { itens, playlist: sel.titulo, formato: $('formato').value, qualidade: $('qualidade').value });
+    // marca como "na fila" para nao selecionar de novo por engano
+    [...sel.marcados].forEach(i => { sel.itens[i].jaBaixado = true; });
+    sel.marcados.clear();
+    $('sel').classList.add('hide');
+    $('addMsg').textContent = r.adicionados + ' faixa(s) de "' + sel.titulo + '" adicionada(s) à fila';
+    atualizar();
+  } catch (e) { toast(e.message, 6000); }
+};
+
+async function salvarCfg(parcial, msg) {
+  try { const r = await api('/api/config', parcial); $('pasta').value = r.config.pastaSaida; if (msg) toast(msg); }
+  catch (e) { toast(e.message, 6000); }
+}
+
+$('btnBaixar').onclick = () => adicionar($('urls').value.split(/\s+/).map(s => s.trim()).filter(Boolean));
+$('urls').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('btnBaixar').click(); });
+$('btnColar').onclick = async () => {
+  try { const t = await navigator.clipboard.readText(); $('urls').value = ($('urls').value.trim() + '\n' + t.trim()).trim(); }
+  catch (e) { toast('O navegador não liberou a área de transferência. Use Ctrl+V no campo.'); }
+};
+$('formato').onchange = () => { $('qWrap').classList.toggle('hide', !temQualidade($('formato').value)); salvarCfg({ formato: $('formato').value }); };
+$('qualidade').onchange = () => salvarCfg({ qualidadeMp3: $('qualidade').value });
+$('pular').onchange = () => salvarCfg({ pularBaixados: $('pular').checked });
+$('cookies').onchange = () => salvarCfg({ cookiesNavegador: $('cookies').value }, $('cookies').value ? 'Vai usar os cookies do ' + $('cookies').selectedOptions[0].text : 'Cookies desativados');
+$('btnSalvarPasta').onclick = () => salvarCfg({ pastaSaida: $('pasta').value }, 'Pasta salva');
+$('btnEscolher').onclick = async () => {
+  toast('Abrindo seletor de pasta (pode aparecer atrás do navegador)…');
+  try { const r = await api('/api/escolher-pasta', {}); if (r.pasta) { $('pasta').value = r.pasta; salvarCfg({ pastaSaida: r.pasta }, 'Pasta salva'); } }
+  catch (e) { toast(e.message); }
+};
+$('btnAbrirPasta').onclick = () => api('/api/abrir', {}).catch(e => toast(e.message));
+$('btnCancelarTodos').onclick = async () => {
+  const pend = (estado?.jobs || []).filter(j => ['fila','baixando','convertendo'].includes(j.status));
+  if (!pend.length) return;
+  const baixando = pend.filter(j => j.status !== 'fila').length;
+  const msg = 'Cancelar ' + pend.length + ' download(s)?\n\n' +
+    (baixando ? '• ' + baixando + ' em andamento será(ão) interrompido(s)\n' : '') +
+    (pend.length - baixando ? '• ' + (pend.length - baixando) + ' na fila será(ão) removido(s)\n' : '') +
+    '\nOs arquivos que já terminaram continuam na pasta.';
+  if (!confirm(msg)) return;
+  try { const r = await api('/api/cancelar-todos', {}); toast(r.cancelados + ' download(s) cancelado(s).'); atualizar(); }
+  catch (e) { toast(e.message); }
+};
+$('btnLimpar').onclick = () => api('/api/limpar', {}).then(atualizar);
+$('btnAtualizar').onclick = async () => {
+  const m = $('cfgMsg'); m.dataset.fixo = '1'; m.textContent = 'Atualizando yt-dlp…';
+  try { const r = await api('/api/atualizar', {}); m.textContent = r.saida.split('\n').filter(Boolean).pop() || 'OK'; }
+  catch (e) { m.textContent = e.message; }
+};
+$('btnFfVerificar').onclick = async () => {
+  const m = $('cfgMsg'); m.dataset.fixo = '1';
+  const r = await api('/api/ffmpeg/verificar', {}); m.textContent = r.ffmpeg ? 'FFmpeg encontrado: ' + r.ffmpeg : 'FFmpeg não encontrado.';
+  atualizar();
+};
+$('btnFfInstalar').onclick = () => { delete $('cfgMsg').dataset.fixo; api('/api/ffmpeg/instalar', {}).then(atualizar).catch(e => toast(e.message)); };
+
+$('lista').onclick = async e => {
+  const b = e.target.closest('button[data-a]'); if (!b) return;
+  const id = +b.dataset.id, a = b.dataset.a;
+  try {
+    if (a === 'log') {
+      const r = await api('/api/log', { id });
+      $('mCmd').textContent = r.comando; $('mLog').textContent = r.log.join('\n') || '(sem saída)';
+      $('modal').classList.remove('hide');
+    } else await api('/api/' + a, { id });
+    atualizar();
+  } catch (err) { toast(err.message); }
+};
+$('btnEncerrar').onclick = async () => {
+  const ativos = (estado?.jobs || []).filter(j => ['fila','baixando','convertendo'].includes(j.status)).length;
+  if (ativos && !confirm(ativos + ' download(s) em andamento serão cancelados. Encerrar mesmo assim?')) return;
+  encerrado = true;
+  try { await api('/api/encerrar', {}); } catch (e) {}
+  setTimeout(atualizar, 1200);
+};
+$('mFechar').onclick = () => $('modal').classList.add('hide');
+$('modal').onclick = e => { if (e.target === $('modal')) $('modal').classList.add('hide'); };
+
+// bookmarklet: abre esta pagina com ?add=<url do video>
+$('bookmarklet').href = "javascript:(()=>{window.open('" + location.origin + "/?add='+encodeURIComponent(location.href),'baixador-audios')})()";
+$('bookmarklet').onclick = e => { e.preventDefault(); toast('Arraste este botão para a barra de favoritos.'); };
+
+(async () => {
+  await atualizar();
+  const add = new URLSearchParams(location.search).get('add');
+  if (add) { history.replaceState(null, '', '/'); adicionar([add]); }
+  setInterval(atualizar, 800);
+})();
+</script>
+</body>
+</html>

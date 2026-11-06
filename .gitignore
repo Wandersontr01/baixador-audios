@@ -1,0 +1,6 @@
+# binarios: baixados por maquina pelo PREPARAR.bat
+bin/
+runtime/
+# por maquina
+config.json
+baixador.log
