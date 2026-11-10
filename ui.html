@@ -3,90 +3,182 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Baixador de Áudio e Vídeo</title>
+<title>Baixador</title>
 <style>
-  :root{ --bg:#0f172a; --card:#1e293b; --line:#334155; --txt:#e2e8f0; --mut:#94a3b8;
-         --azul:#2563eb; --verde:#16a34a; --vermelho:#dc2626; --amarelo:#d97706; }
+  :root{
+    --bg:#0b0f17; --bg2:#0f1520; --card:#141b27; --card2:#182131; --line:#243044; --line2:#2e3c54;
+    --txt:#e7ecf3; --mut:#8a97ab; --mut2:#64728a;
+    --acc:#7c5cff; --acc2:#9b84ff; --accbg:rgba(124,92,255,.14);
+    --ok:#22c55e; --okbg:rgba(34,197,94,.13); --warn:#f59e0b; --warnbg:rgba(245,158,11,.13);
+    --bad:#ef4444; --badbg:rgba(239,68,68,.13); --info:#38bdf8;
+    --r:14px; --r2:10px; --sombra:0 1px 0 rgba(255,255,255,.03) inset, 0 10px 30px rgba(0,0,0,.25);
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f4f6fb; --bg2:#eef1f7; --card:#ffffff; --card2:#f7f8fc; --line:#e2e7f0; --line2:#d3dae6;
+      --txt:#141a26; --mut:#5d6b82; --mut2:#8994a8;
+      --accbg:rgba(124,92,255,.10); --okbg:rgba(34,197,94,.12); --warnbg:rgba(245,158,11,.14); --badbg:rgba(239,68,68,.10);
+      --sombra:0 1px 2px rgba(20,26,38,.05), 0 8px 24px rgba(20,26,38,.06);
+    }
+  }
   *{box-sizing:border-box}
-  body{margin:0;font-family:Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:14px}
-  header{background:var(--card);border-bottom:1px solid var(--line);padding:12px 20px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10;flex-wrap:wrap}
-  header h1{font-size:17px;margin:0;font-weight:600}
-  .tools{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
-  .badge{padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;background:#334155}
-  .badge.ok{background:#14532d;color:#bbf7d0}.badge.bad{background:#7f1d1d;color:#fecaca}.badge.warn{background:#78350f;color:#fde68a}
-  main{padding:20px;max-width:1100px;margin:0 auto}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
-  .card h2{font-size:14px;margin:0 0 12px;color:var(--mut);text-transform:uppercase;letter-spacing:.04em;display:flex;align-items:center;gap:10px}
-  .card h2 .sp{margin-left:auto}
-  label{display:block;font-size:12px;color:var(--mut);margin:8px 0 4px}
-  input[type=text],select,textarea{width:100%;background:var(--bg);color:var(--txt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:14px;font-family:inherit}
-  textarea{min-height:92px;resize:vertical}
-  select{width:auto}
-  button{cursor:pointer;border:none;border-radius:7px;padding:9px 16px;font-size:14px;font-weight:600;color:#fff;background:var(--azul)}
-  button.ghost{background:transparent;border:1px solid var(--line);color:var(--txt)}
-  button.verde{background:var(--verde)} button.verm{background:var(--vermelho)}
-  button:disabled{opacity:.5;cursor:not-allowed}
-  button.mini{padding:3px 10px;font-size:12px}
-  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-  .grow{flex:1;min-width:220px}
+  html,body{margin:0}
+  body{font-family:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.45;
+       background-image:radial-gradient(1200px 500px at 15% -10%, rgba(124,92,255,.12), transparent 60%), radial-gradient(900px 400px at 100% 0%, rgba(56,189,248,.07), transparent 60%);background-attachment:fixed}
+  a{color:var(--acc2)}
   .hide{display:none !important}
-  .muted{color:var(--mut)} .small{font-size:12px}
-  .ok{color:#4ade80}.warn{color:#fbbf24}.bad{color:#f87171}
-  .chk{display:flex;align-items:center;gap:6px;color:var(--txt);font-size:13px;margin:0}
-  .banner{border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:13px;border:1px solid}
-  .banner.warn{background:#3b2f12;border-color:#78350f}
-  .banner.bad{background:#3b1414;border-color:#7f1d1d}
-  .banner.info{background:#0b1d3a;border-color:#1e3a8a}
-  .bar{height:8px;background:var(--bg);border:1px solid var(--line);border-radius:999px;overflow:hidden;margin-top:6px}
-  .bar>div{height:100%;background:var(--azul);width:0%;transition:width .3s}
-  .bar.conv>div{background:var(--amarelo)} .bar.done>div{background:var(--verde)}
-  .job{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#172033}
+  .muted{color:var(--mut)} .small{font-size:12.5px}
+  .ok{color:var(--ok)} .warn{color:var(--warn)} .bad{color:var(--bad)}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .grow{flex:1;min-width:200px}
+
+  /* ---------- topo ---------- */
+  header{position:sticky;top:0;z-index:20;backdrop-filter:blur(14px);background:color-mix(in srgb, var(--bg) 78%, transparent);border-bottom:1px solid var(--line)}
+  .topo{max-width:1040px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .marca{display:flex;align-items:center;gap:11px}
+  .logo{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,var(--acc),#38bdf8);box-shadow:0 6px 18px rgba(124,92,255,.35)}
+  .logo svg{width:20px;height:20px}
+  .marca h1{font-size:16.5px;margin:0;font-weight:700;letter-spacing:-.01em}
+  .marca p{margin:0;font-size:12px;color:var(--mut)}
+  .tools{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;font-size:12px;font-weight:600;background:var(--card2);color:var(--mut);border:1px solid var(--line)}
+  .badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--mut2)}
+  .badge.ok{color:var(--txt)} .badge.ok::before{background:var(--ok);box-shadow:0 0 0 3px var(--okbg)}
+  .badge.warn::before{background:var(--warn)} .badge.bad{color:var(--bad)} .badge.bad::before{background:var(--bad)}
+
+  main{max-width:1040px;margin:0 auto;padding:22px 20px 60px}
+
+  /* ---------- cartoes ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;margin-bottom:18px;box-shadow:var(--sombra)}
+  .card h2{font-size:15px;margin:0 0 14px;font-weight:700;display:flex;align-items:center;gap:10px;letter-spacing:-.01em}
+  .card h2 .sp{margin-left:auto}
+  .card h2 .cont{font-size:12px;font-weight:600;color:var(--mut);background:var(--card2);border:1px solid var(--line);padding:1px 8px;border-radius:999px}
+  label{display:block;font-size:12px;font-weight:600;color:var(--mut);margin:0 0 6px}
+  input[type=text],select,textarea{width:100%;background:var(--bg2);color:var(--txt);border:1px solid var(--line);border-radius:var(--r2);padding:9px 12px;font-size:14px;font-family:inherit;transition:border-color .15s, box-shadow .15s}
+  input[type=text]:focus,select:focus,textarea:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px var(--accbg)}
+  select{width:auto;min-width:150px;cursor:pointer}
+  .chk{display:inline-flex;align-items:center;gap:8px;color:var(--txt);font-size:13.5px;font-weight:500;margin:0;cursor:pointer}
+  .chk input{width:16px;height:16px;accent-color:var(--acc)}
+
+  button{cursor:pointer;border:1px solid transparent;border-radius:var(--r2);padding:9px 16px;font-size:14px;font-weight:600;color:#fff;background:var(--acc);font-family:inherit;transition:filter .15s, background .15s, transform .05s}
+  button:hover{filter:brightness(1.08)} button:active{transform:translateY(1px)}
+  button.ghost{background:transparent;border-color:var(--line2);color:var(--txt)}
+  button.ghost:hover{background:var(--card2);filter:none}
+  button.verde{background:linear-gradient(135deg,var(--acc),#5b8cff)}
+  button.verm{background:var(--bad)}
+  button:disabled{opacity:.45;cursor:not-allowed;filter:none}
+  button.mini{padding:5px 11px;font-size:12.5px;border-radius:8px}
+  button.grande{padding:12px 22px;font-size:15px}
+
+  /* ---------- novo download ---------- */
+  .seg{display:inline-flex;padding:4px;background:var(--bg2);border:1px solid var(--line);border-radius:12px;gap:4px}
+  .seg button{background:transparent;color:var(--mut);border:none;padding:8px 18px;border-radius:9px;display:inline-flex;align-items:center;gap:8px}
+  .seg button svg{width:16px;height:16px}
+  .seg button.on{background:var(--card);color:var(--txt);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+  .seg button:disabled{opacity:.35}
+  .entrada{position:relative;margin-top:14px}
+  textarea#urls{min-height:118px;resize:vertical;padding:14px 16px;font-size:14.5px;line-height:1.6;border-radius:12px;border-style:dashed;border-width:1.5px}
+  textarea#urls:focus{border-style:solid}
+  .funciona{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .funciona > span{font-size:12px;color:var(--mut);margin-right:2px}
+  .plat{display:inline-flex;align-items:center;gap:6px;padding:3px 9px 3px 7px;border-radius:999px;font-size:12px;font-weight:600;background:var(--card2);border:1px solid var(--line);color:var(--txt);white-space:nowrap}
+  .plat i{width:8px;height:8px;border-radius:50%;background:var(--c,#888);flex-shrink:0}
+  .plat.mais{color:var(--mut);cursor:help}
+  .detect{margin-top:10px;display:flex;flex-direction:column;gap:6px}
+  .det{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:10px;background:var(--bg2);border:1px solid var(--line);font-size:13px;min-width:0}
+  .det .u{color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+  .det .k{font-size:11.5px;color:var(--mut);white-space:nowrap}
+  .det.aviso{border-color:color-mix(in srgb, var(--warn) 45%, var(--line));background:var(--warnbg)}
+  .det.erro{border-color:color-mix(in srgb, var(--bad) 45%, var(--line));background:var(--badbg)}
+  .det .msg{font-size:12px;text-align:right}
+  @media (max-width:680px){ .det{flex-wrap:wrap} .det .u{flex-basis:100%;order:3} .det .msg{text-align:left;flex-basis:100%;order:4} }
+  .opcoes{display:flex;gap:14px 18px;align-items:flex-end;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid var(--line)}
+  .opcoes > div{display:flex;flex-direction:column}
+  .acoes{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:18px}
+  .nota{font-size:12.5px;color:var(--mut);margin-top:10px;display:flex;gap:8px;align-items:flex-start}
+  .nota.warn{color:var(--warn)}
+
+  /* ---------- avisos ---------- */
+  .banner{border-radius:12px;padding:11px 14px;margin-bottom:16px;font-size:13px;border:1px solid}
+  .banner.warn{background:var(--warnbg);border-color:color-mix(in srgb, var(--warn) 40%, transparent)}
+  .banner.bad{background:var(--badbg);border-color:color-mix(in srgb, var(--bad) 40%, transparent)}
+  .banner.info{background:var(--accbg);border-color:color-mix(in srgb, var(--acc) 40%, transparent)}
+
+  /* ---------- lista de downloads ---------- */
+  .job{display:flex;gap:14px;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px;background:var(--card2)}
+  .job .thumb{width:112px;height:63px;border-radius:8px;flex-shrink:0;background:var(--bg2) center/cover no-repeat;border:1px solid var(--line);display:grid;place-items:center;color:var(--mut2);overflow:hidden}
+  .job .thumb svg{width:22px;height:22px}
+  .job .corpo{flex:1;min-width:0}
   .job .top{display:flex;gap:10px;align-items:flex-start}
-  .job .tit{font-weight:600;word-break:break-word}
-  .job .url{font-size:12px;color:var(--mut);word-break:break-all}
+  .job .tit{font-weight:650;word-break:break-word;line-height:1.35}
+  .job .sub{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .job .url{font-size:12px;color:var(--mut2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:420px}
   .job .acts{margin-left:auto;display:flex;gap:6px;flex-shrink:0}
-  .job .meta{font-size:12px;color:var(--mut);margin-top:4px}
-  .job .err{font-size:12px;color:#fecaca;margin-top:6px;white-space:pre-wrap;word-break:break-word}
-  .job .dica{font-size:12px;color:#fde68a;margin-top:4px}
-  .pill{font-size:11px;padding:1px 8px;border-radius:999px;font-weight:600;flex-shrink:0;white-space:nowrap}
-  .st-fila{background:#334155}.st-baixando{background:#1e3a8a;color:#bfdbfe}.st-convertendo{background:#78350f;color:#fde68a}
-  .st-concluido{background:#14532d;color:#bbf7d0}.st-parcial{background:#78350f;color:#fde68a}
-  .st-erro{background:#7f1d1d;color:#fecaca}.st-cancelado,.st-pulado{background:#334155;color:#cbd5e1}
-  .vazio{color:var(--mut);text-align:center;padding:18px 0}
-  .modalbg{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
-  .modalbox{background:var(--card);border:1px solid var(--line);border-radius:10px;width:min(900px,100%);max-height:85vh;overflow:auto;padding:16px}
-  .modalbox pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:#0b1220;padding:10px;border-radius:8px;border:1px solid var(--line)}
-  a{color:#93c5fd}
-  .bm{display:inline-block;padding:6px 12px;border:1px dashed #60a5fa;border-radius:7px;text-decoration:none;font-weight:600}
-  .sel-list{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:8px;margin-top:10px}
-  .sel-item{display:flex;gap:10px;align-items:center;padding:7px 10px;border-bottom:1px solid #263247;cursor:pointer;margin:0;color:var(--txt);font-size:13px}
+  .job .meta{font-size:12.5px;color:var(--mut);margin-top:6px}
+  .job .err{font-size:12.5px;color:var(--bad);margin-top:6px;white-space:pre-wrap;word-break:break-word}
+  .job .dica{font-size:12.5px;color:var(--warn);margin-top:4px}
+  .job .meta.ok{color:var(--ok)}
+  .pill{font-size:11px;padding:2px 9px;border-radius:999px;font-weight:700;flex-shrink:0;white-space:nowrap;letter-spacing:.01em}
+  .st-fila{background:var(--bg2);color:var(--mut);border:1px solid var(--line)}
+  .st-baixando{background:var(--accbg);color:var(--acc2)} .st-convertendo{background:var(--warnbg);color:var(--warn)}
+  .st-concluido{background:var(--okbg);color:var(--ok)} .st-parcial{background:var(--warnbg);color:var(--warn)}
+  .st-erro{background:var(--badbg);color:var(--bad)} .st-cancelado,.st-pulado{background:var(--bg2);color:var(--mut);border:1px solid var(--line)}
+  .bar{height:6px;background:var(--bg2);border-radius:999px;overflow:hidden;margin-top:9px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--acc),#38bdf8);width:0%;transition:width .3s;border-radius:999px}
+  .bar.conv>div{background:var(--warn)} .bar.done>div{background:var(--ok)}
+  .vazio{color:var(--mut);text-align:center;padding:30px 10px}
+  .vazio svg{width:34px;height:34px;opacity:.5;display:block;margin:0 auto 8px}
+
+  /* ---------- configuracoes ---------- */
+  details.card{padding:0}
+  details.card > summary{list-style:none;cursor:pointer;padding:16px 22px;font-weight:700;font-size:15px;display:flex;align-items:center;gap:10px}
+  details.card > summary::-webkit-details-marker{display:none}
+  details.card > summary .seta{margin-left:auto;transition:transform .2s;color:var(--mut)}
+  details.card[open] > summary .seta{transform:rotate(180deg)}
+  details.card .conteudo{padding:0 22px 20px;border-top:1px solid var(--line)}
+  .campo{margin-top:16px}
+  .bm{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border:1.5px dashed var(--acc);border-radius:10px;text-decoration:none;font-weight:700;color:var(--acc2);background:var(--accbg)}
+
+  /* ---------- modais ---------- */
+  .modalbg{position:fixed;inset:0;background:rgba(5,8,14,.62);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .modalbox{background:var(--card);border:1px solid var(--line);border-radius:16px;width:min(900px,100%);max-height:86vh;overflow:auto;padding:20px;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+  .modalbox pre{white-space:pre-wrap;word-break:break-word;font-size:12px;background:var(--bg2);padding:12px;border-radius:10px;border:1px solid var(--line);font-family:Consolas,"Cascadia Mono",monospace}
+  .modalbox label{margin-top:12px}
+  .sel-list{max-height:52vh;overflow:auto;border:1px solid var(--line);border-radius:12px;margin-top:12px}
+  .sel-item{display:flex;gap:10px;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);cursor:pointer;margin:0;color:var(--txt);font-size:13px;font-weight:500}
   .sel-item:last-child{border-bottom:none}
-  .sel-item:hover{background:#1b2740}
+  .sel-item:hover{background:var(--card2)}
+  .sel-item input{accent-color:var(--acc)}
   .sel-item.dis{opacity:.45;cursor:not-allowed}
-  .sel-item .ix{color:var(--mut);width:34px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .sel-item .ix{color:var(--mut2);width:34px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums}
   .sel-item .tx{min-width:0;flex:1}
   .sel-item .tx div:first-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .sel-item .tg{font-size:11px;padding:1px 7px;border-radius:999px;background:#334155;color:#cbd5e1;flex-shrink:0}
-  .sel-item .tg.ok{background:#14532d;color:#bbf7d0}
+  .sel-item .tg{font-size:11px;padding:1px 8px;border-radius:999px;background:var(--bg2);color:var(--mut);flex-shrink:0;border:1px solid var(--line)}
+  .sel-item .tg.ok{background:var(--okbg);color:var(--ok);border-color:transparent}
   .sel-count{font-weight:700;font-variant-numeric:tabular-nums}
-  .sel-count.max{color:#fbbf24}
-  .spin{display:inline-block;width:14px;height:14px;border:2px solid #475569;border-top-color:#60a5fa;border-radius:50%;animation:gira .8s linear infinite;vertical-align:-2px;margin-right:6px}
+  .sel-count.max{color:var(--warn)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid var(--line2);border-top-color:var(--acc);border-radius:50%;animation:gira .8s linear infinite;vertical-align:-2px;margin-right:6px}
   @keyframes gira{to{transform:rotate(360deg)}}
-  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-  .seg button{background:transparent;color:var(--mut);border-radius:0;padding:7px 18px}
-  .seg button.on{background:var(--azul);color:#fff}
-  .seg button:disabled{opacity:.4}
-  #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0b1220;border:1px solid var(--line);padding:9px 16px;border-radius:8px;font-size:13px;z-index:60;max-width:90vw}
-  @media (max-width:640px){ .job .top{flex-wrap:wrap} .job .acts{margin-left:0} }
+  #toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--card);color:var(--txt);border:1px solid var(--line2);padding:10px 16px;border-radius:10px;font-size:13px;z-index:60;max-width:90vw;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+  @media (max-width:680px){
+    .job{flex-direction:column} .job .thumb{width:100%;height:160px}
+    .job .top{flex-wrap:wrap} .job .acts{margin-left:0}
+    .marca p{display:none} main{padding:16px 16px 40px}
+  }
 </style>
 </head>
 <body>
 <header>
-  <h1>🎧 Baixador de Áudio e Vídeo</h1>
-  <div class="tools">
-    <span id="bYt" class="badge">yt-dlp…</span>
-    <span id="bFf" class="badge">FFmpeg…</span>
-    <button class="ghost mini" id="btnEncerrar" title="Encerra o servidor do Baixador">Encerrar</button>
+  <div class="topo">
+    <div class="marca">
+      <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg></div>
+      <div><h1>Baixador</h1><p>Áudio e vídeo de mais de 1.700 sites</p></div>
+    </div>
+    <div class="tools">
+      <span id="bYt" class="badge">yt-dlp…</span>
+      <span id="bFf" class="badge">FFmpeg…</span>
+      <button class="ghost mini" id="btnEncerrar" title="Encerra o servidor do Baixador">Encerrar</button>
+    </div>
   </div>
 </header>
 
@@ -94,17 +186,23 @@
   <div id="bannerYt" class="banner hide"></div>
   <div id="bannerNode" class="banner warn hide"></div>
 
-  <div class="card">
-    <h2>1. Adicionar</h2>
-    <div class="row" style="margin-bottom:10px">
-      <div class="seg" role="tablist">
-        <button id="tAudio" class="on" data-tipo="audio">🎵 Áudio</button>
-        <button id="tVideo" data-tipo="video">🎬 Vídeo</button>
+  <section class="card">
+    <div class="row">
+      <div class="seg" role="tablist" aria-label="O que baixar">
+        <button id="tAudio" class="on" data-tipo="audio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>Áudio</button>
+        <button id="tVideo" data-tipo="video"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 10 5-3v10l-5-3z"/></svg>Vídeo</button>
       </div>
+      <span class="small muted" id="tipoDesc">Extrai só o áudio, em M4A, MP3, OPUS ou OGG.</span>
     </div>
-    <label for="urls">Links (um por linha, até 30 por vez) — YouTube, Instagram, TikTok, Vimeo, X, Twitch, SoundCloud e +1.700 sites</label>
-    <textarea id="urls" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/..."></textarea>
-    <div class="row" style="margin-top:10px">
+
+    <div class="entrada">
+      <label for="urls" class="hide">Links</label>
+      <textarea id="urls" spellcheck="false" placeholder="Cole aqui um ou mais links (um por linha, até 30)&#10;Ex.: YouTube, Instagram, TikTok, X, Vimeo, SoundCloud, Twitch…"></textarea>
+    </div>
+    <div id="funciona" class="funciona"></div>
+    <div id="detectados" class="detect"></div>
+
+    <div class="opcoes">
       <div class="soAudio">
         <label for="formato">Formato</label>
         <select id="formato">
@@ -142,71 +240,81 @@
         </select>
       </div>
       <div class="soVideo hide">
-        <label>&nbsp;</label>
         <label class="chk" title="Legendas oficiais em português e inglês, quando o vídeo tiver"><input type="checkbox" id="legendas"> Legendas (pt/en)</label>
       </div>
       <div>
-        <label>&nbsp;</label>
-        <label class="chk" title="Links só de playlist (sem vídeo específico) sempre abrem a seleção"><input type="checkbox" id="playlist" checked> Link de playlist: escolher os itens <span class="muted">(desmarcado = só o do link)</span></label>
+        <label class="chk" title="Links só de playlist (sem vídeo específico) sempre abrem a seleção"><input type="checkbox" id="playlist" checked> Playlist do YouTube: escolher os itens</label>
       </div>
     </div>
-    <div class="row" style="margin-top:14px">
-      <button id="btnBaixar" class="verde">Baixar áudio</button>
-      <button id="btnColar" class="ghost">Colar da área de transferência</button>
+
+    <div class="acoes">
+      <button id="btnBaixar" class="verde grande">Baixar áudio</button>
+      <button id="btnColar" class="ghost">Colar</button>
       <span id="addMsg" class="small muted"></span>
     </div>
-    <div id="vidDica" class="small muted soVideo hide" style="margin-top:8px">MP4 prefere H.264 + AAC, que toca direto em quase qualquer TV e celular. No YouTube o H.264 vai até 1080p; acima disso o vídeo vem em VP9/AV1, que aparelhos antigos podem não reproduzir.</div>
-    <div id="ffAviso" class="small warn hide" style="margin-top:8px"></div>
-  </div>
+    <div id="vidDica" class="nota soVideo hide">ⓘ <span>MP4 prefere H.264 + AAC, que toca direto em quase qualquer TV e celular. No YouTube o H.264 vai até 1080p; acima disso o vídeo vem em VP9/AV1, que aparelhos antigos podem não reproduzir.</span></div>
+    <div id="ffAviso" class="nota warn hide"></div>
+  </section>
 
-  <div class="card">
-    <h2>2. Downloads <span class="sp"></span>
+  <section class="card">
+    <h2>Downloads <span id="contJobs" class="cont hide"></span><span class="sp"></span>
       <button class="verm mini hide" id="btnCancelarTodos">Cancelar todos</button>
       <button class="ghost mini" id="btnAbrirPasta">Abrir pasta</button>
       <button class="ghost mini" id="btnLimpar">Limpar concluídos</button>
     </h2>
-    <div id="lista"><div class="vazio">Nenhum download ainda.</div></div>
-  </div>
+    <div id="lista"></div>
+  </section>
 
-  <div class="card">
-    <h2>3. Configurações</h2>
-    <label for="pasta">Pasta onde os áudios são salvos</label>
-    <div class="row">
-      <input type="text" id="pasta" class="grow">
-      <button class="ghost" data-escolher="pasta">Escolher…</button>
-      <button data-salvar="pasta">Salvar</button>
-    </div>
-    <label for="pastaVid">Pasta onde os vídeos são salvos</label>
-    <div class="row">
-      <input type="text" id="pastaVid" class="grow">
-      <button class="ghost" data-escolher="pastaVid">Escolher…</button>
-      <button data-salvar="pastaVid">Salvar</button>
-    </div>
-    <div class="row" style="margin-top:12px;gap:22px">
-      <label class="chk"><input type="checkbox" id="pular"> Pular itens já baixados (no mesmo formato)</label>
-      <div class="row" style="gap:6px">
-        <span class="small muted">Usar cookies do navegador:</span>
-        <select id="cookies">
-          <option value="">não usar</option>
-          <option value="firefox">Firefox</option>
-          <option value="edge">Edge</option>
-          <option value="chrome">Chrome</option>
-          <option value="brave">Brave</option>
-        </select>
+  <details class="card" id="cfgBox">
+    <summary>Configurações <span class="seta">▾</span></summary>
+    <div class="conteudo">
+      <div class="campo">
+        <label for="pasta">Pasta dos áudios</label>
+        <div class="row">
+          <input type="text" id="pasta" class="grow">
+          <button class="ghost" data-escolher="pasta">Escolher…</button>
+          <button data-salvar="pasta">Salvar</button>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="pastaVid">Pasta dos vídeos</label>
+        <div class="row">
+          <input type="text" id="pastaVid" class="grow">
+          <button class="ghost" data-escolher="pastaVid">Escolher…</button>
+          <button data-salvar="pastaVid">Salvar</button>
+        </div>
+      </div>
+      <div class="campo row" style="gap:22px">
+        <label class="chk"><input type="checkbox" id="pular"> Pular itens já baixados (no mesmo formato)</label>
+        <div class="row" style="gap:8px">
+          <span class="small muted">Usar cookies do navegador</span>
+          <select id="cookies">
+            <option value="">não usar</option>
+            <option value="firefox">Firefox</option>
+            <option value="edge">Edge</option>
+            <option value="chrome">Chrome</option>
+            <option value="brave">Brave</option>
+          </select>
+        </div>
+      </div>
+      <div class="nota">ⓘ <span>Cookies só são necessários para conteúdo com restrição de idade, de membros, privado, ou quando o site pedir verificação. Chrome/Edge precisam estar fechados; o Firefox funciona aberto.</span></div>
+
+      <div class="campo row">
+        <button class="ghost" id="btnAtualizar">Atualizar yt-dlp</button>
+        <button class="ghost" id="btnFfVerificar">Verificar FFmpeg</button>
+        <button class="ghost" id="btnFfInstalar">Instalar FFmpeg (winget)</button>
+        <span id="cfgMsg" class="small muted"></span>
+      </div>
+
+      <div class="campo">
+        <label>Botão para a barra de favoritos</label>
+        <div class="row">
+          <a id="bookmarklet" class="bm" href="#">⬇ Baixador</a>
+          <span class="small muted">Arraste para a barra de favoritos. Em qualquer página de vídeo, clique nele: o link entra na fila com o tipo (Áudio/Vídeo) selecionado aqui.</span>
+        </div>
       </div>
     </div>
-    <div class="small muted" style="margin-top:6px">Cookies só são necessários para vídeos com restrição de idade, de membros, ou quando o YouTube pedir verificação. Chrome/Edge precisam estar fechados para isso funcionar; o Firefox funciona aberto.</div>
-
-    <div class="row" style="margin-top:16px">
-      <button class="ghost" id="btnAtualizar">Atualizar yt-dlp</button>
-      <button class="ghost" id="btnFfVerificar">Verificar FFmpeg</button>
-      <button class="ghost" id="btnFfInstalar">Instalar FFmpeg (winget)</button>
-      <span id="cfgMsg" class="small muted"></span>
-    </div>
-
-    <label style="margin-top:16px">Botão para a barra de favoritos — arraste para a barra e clique nele em qualquer vídeo (usa o tipo Áudio/Vídeo que estiver selecionado aqui):</label>
-    <a id="bookmarklet" class="bm" href="#">🎧 Baixador</a>
-  </div>
+  </details>
 </main>
 
 <div id="modal" class="modalbg hide">
@@ -223,15 +331,15 @@
     <div id="selCorpo">
       <div class="row" style="margin-top:12px">
         <input type="text" id="selBusca" class="grow" placeholder="Filtrar por título ou artista…">
-        <button class="ghost mini" id="selPrimeiras">Marcar as primeiras 30 (não baixadas)</button>
-        <button class="ghost mini" id="selNenhuma">Desmarcar todas</button>
+        <button class="ghost mini" id="selPrimeiras">Marcar os primeiros 30 (não baixados)</button>
+        <button class="ghost mini" id="selNenhuma">Desmarcar todos</button>
       </div>
       <div class="sel-list" id="selLista"></div>
       <div class="row" style="margin-top:12px">
-        <span class="small">Selecionadas: <span id="selCount" class="sel-count">0 / 30</span></span>
+        <span class="small">Selecionados: <span id="selCount" class="sel-count">0 / 30</span></span>
         <span class="small muted" id="selDica">Shift+clique marca um intervalo.</span>
         <span class="grow"></span>
-        <button class="verde" id="selBaixar" disabled>Baixar selecionadas</button>
+        <button class="verde" id="selBaixar" disabled>Baixar selecionados</button>
       </div>
     </div>
   </div>
@@ -296,15 +404,17 @@ function renderJobs(jobs) {
   const pendentes = jobs.filter(j => ['fila','baixando','convertendo'].includes(j.status)).length;
   $('btnCancelarTodos').classList.toggle('hide', !pendentes);
   $('btnCancelarTodos').textContent = 'Cancelar todos (' + pendentes + ')';
-  if (!jobs.length) { el.innerHTML = '<div class="vazio">Nenhum download ainda.</div>'; return; }
+  $('contJobs').classList.toggle('hide', !jobs.length);
+  $('contJobs').textContent = jobs.length;
+  if (!jobs.length) { el.innerHTML = '<div class="vazio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Nenhum download ainda. Cole um link acima para começar.</div>'; return; }
   el.innerHTML = jobs.slice().reverse().map(j => {
     const ativo = j.status === 'baixando' || j.status === 'convertendo';
     const fim = ['concluido','parcial','pulado'].includes(j.status);
     const pct = fim ? 100 : (j.pct || 0);
     const barCls = j.status === 'convertendo' ? 'conv' : (fim ? 'done' : '');
     let meta = (j.tipo === 'video'
-        ? '🎬 ' + j.formato.toUpperCase() + ' · ' + (j.qualidade === 'melhor' ? 'melhor resolução' : 'até ' + j.qualidade + 'p') + (j.legendas ? ' · legendas' : '')
-        : '🎵 ' + j.formato.toUpperCase() + (temQualidade(j.formato) ? (j.formato === 'ogg' ? ' ~' : ' ') + j.qualidade + ' kbps' : ''))
+        ? 'Vídeo ' + j.formato.toUpperCase() + ' · ' + (j.qualidade === 'melhor' ? 'melhor resolução' : 'até ' + j.qualidade + 'p') + (j.legendas ? ' · legendas' : '')
+        : 'Áudio ' + j.formato.toUpperCase() + (temQualidade(j.formato) ? (j.formato === 'ogg' ? ' ~' : ' ') + j.qualidade + ' kbps' : ''))
       + (j.subpasta ? ' · ' + esc(j.subpasta) + (j.indice ? ' #' + j.indice : '') : '');
     if (j.status === 'baixando') meta += ' · ' + pct.toFixed(1) + '%' + (j.vel ? ' · ' + esc(j.vel) : '') + (j.eta && j.eta !== 'Unknown' ? ' · faltam ' + esc(j.eta) : '');
     if (j.status === 'convertendo') meta += j.tipo === 'video' ? ' · juntando vídeo e áudio / gravando capa…' : ' · convertendo / gravando capa…';
@@ -319,11 +429,20 @@ function renderJobs(jobs) {
       ['erro','cancelado','parcial'].includes(j.status) ? '<button class="ghost mini" data-a="repetir" data-id="' + j.id + '">Tentar de novo</button>' : '',
       j.status !== 'fila' ? '<button class="ghost mini" data-a="log" data-id="' + j.id + '">Log</button>' : ''
     ].join('');
-    return '<div class="job"><div class="top"><span class="pill st-' + j.status + '">' + NOMES[j.status] + '</span>' +
-      '<div style="min-width:0"><div class="tit">' + esc(j.titulo || ({ pulado:'Já estava baixado', erro:'Não foi possível obter o vídeo', cancelado:'Cancelado' }[j.status] || 'Aguardando informações…')) + '</div><div class="url">' + esc(j.url) + '</div></div>' +
+    // plataforma: a que o yt-dlp reconheceu (quando ja comecou) ou a deduzida pelo link
+    const plat = nomeExtrator(j.extrator, j.url) || (r => r.erro ? { nome: '?', cor: '#64748b' } : r)(identificar(j.url));
+    const icone = j.tipo === 'video'
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="15" height="14" rx="2"/><path d="m17 10 5-3v10l-5-3z"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+    const thumb = j.thumb
+      ? '<div class="thumb" style="background-image:url(&quot;' + esc(j.thumb) + '&quot;)"></div>'
+      : '<div class="thumb">' + icone + '</div>';
+    return '<div class="job">' + thumb + '<div class="corpo"><div class="top">' +
+      '<div style="min-width:0;flex:1"><div class="tit">' + esc(j.titulo || ({ pulado:'Já estava baixado', erro:'Não foi possível obter o conteúdo', cancelado:'Cancelado' }[j.status] || 'Aguardando informações…')) + '</div>' +
+      '<div class="sub"><span class="pill st-' + j.status + '">' + NOMES[j.status] + '</span>' + chip(plat.nome, plat.cor) + '<span class="url" title="' + esc(j.url) + '">' + esc(j.url) + '</span></div></div>' +
       '<div class="acts">' + acts + '</div></div>' +
       (j.status !== 'fila' && j.status !== 'cancelado' && j.status !== 'erro' ? '<div class="bar ' + barCls + '"><div style="width:' + pct + '%"></div></div>' : '') +
-      '<div class="meta">' + meta + '</div>' + arquivos + erros + dica + '</div>';
+      '<div class="meta">' + meta + '</div>' + arquivos + erros + dica + '</div></div>';
   }).join('');
 }
 
@@ -357,6 +476,111 @@ async function atualizar() {
 
 const MAX = 30;
 
+// ---------- plataformas ----------
+// So entram aqui sites com extrator no yt-dlp (conferido com --list-extractors).
+// Qualquer outro link ainda e tentado pelo extrator generico do yt-dlp.
+const PLATAFORMAS = [
+  { nome: 'YouTube Music', cor: '#ff0033', hosts: ['music.youtube.com'] },
+  { nome: 'YouTube', cor: '#ff0033', hosts: ['youtube.com', 'youtu.be', 'youtube-nocookie.com'], vitrine: 1 },
+  { nome: 'Instagram', cor: '#e1306c', hosts: ['instagram.com'], vitrine: 1 },
+  { nome: 'TikTok', cor: '#25f4ee', hosts: ['tiktok.com'], vitrine: 1 },
+  { nome: 'X / Twitter', cor: '#94a3b8', hosts: ['x.com', 'twitter.com'], vitrine: 1 },
+  { nome: 'Facebook', cor: '#1877f2', hosts: ['facebook.com', 'fb.watch'], vitrine: 1 },
+  { nome: 'Vimeo', cor: '#1ab7ea', hosts: ['vimeo.com'], vitrine: 1 },
+  { nome: 'Twitch', cor: '#9146ff', hosts: ['twitch.tv'], vitrine: 1 },
+  { nome: 'Kick', cor: '#53fc18', hosts: ['kick.com'] },
+  { nome: 'SoundCloud', cor: '#ff5500', hosts: ['soundcloud.com'], vitrine: 1 },
+  { nome: 'Bandcamp', cor: '#1da0c3', hosts: ['bandcamp.com'], vitrine: 1 },
+  { nome: 'Reddit', cor: '#ff4500', hosts: ['reddit.com', 'redd.it'], vitrine: 1 },
+  { nome: 'Internet Archive', cor: '#a8a29e', hosts: ['archive.org'], vitrine: 1 },
+  { nome: 'Dailymotion', cor: '#0a6cff', hosts: ['dailymotion.com', 'dai.ly'] },
+  { nome: 'Bluesky', cor: '#1185fe', hosts: ['bsky.app'] },
+  { nome: 'LinkedIn', cor: '#0a66c2', hosts: ['linkedin.com'] },
+  { nome: 'Pinterest', cor: '#e60023', hosts: ['pinterest.com', 'pin.it'] },
+  { nome: 'Tumblr', cor: '#4a6b8a', hosts: ['tumblr.com'] },
+  { nome: 'Rumble', cor: '#85c742', hosts: ['rumble.com'] },
+  { nome: 'Bilibili', cor: '#00a1d6', hosts: ['bilibili.com', 'b23.tv'] },
+  { nome: 'Mixcloud', cor: '#5000ff', hosts: ['mixcloud.com'] },
+  { nome: 'Streamable', cor: '#0f90fa', hosts: ['streamable.com'] },
+  { nome: 'Imgur', cor: '#1bb76e', hosts: ['imgur.com'] },
+  { nome: 'VK', cor: '#0077ff', hosts: ['vk.com', 'vkvideo.ru'] },
+  { nome: 'Globo', cor: '#ff4d4d', hosts: ['globo.com'], aviso: 'só conteúdo aberto; o que tem DRM (Globoplay) não baixa' },
+];
+// Sites de streaming com DRM: o yt-dlp nao baixa (nem tenta contornar)
+const SEM_SUPORTE = [
+  { nome: 'Spotify', hosts: ['spotify.com'] }, { nome: 'Deezer', hosts: ['deezer.com'] },
+  { nome: 'Apple Music', hosts: ['music.apple.com'] }, { nome: 'Amazon Music', hosts: ['music.amazon.com'] },
+  { nome: 'Netflix', hosts: ['netflix.com'] }, { nome: 'Prime Video', hosts: ['primevideo.com'] },
+  { nome: 'Disney+', hosts: ['disneyplus.com'] }, { nome: 'Max', hosts: ['max.com', 'hbomax.com'] },
+  { nome: 'Globoplay', hosts: ['globoplay.globo.com'] }, { nome: 'Star+', hosts: ['starplus.com'] },
+];
+const casaHost = (h, lista) => lista.some(x => h === x || h.endsWith('.' + x));
+
+// Identifica de onde e um link: { ok, nome, cor, tipo, aviso } ou erro
+function identificar(u) {
+  let x;
+  try { x = new URL(u); } catch (e) { return { erro: 'não parece um link (precisa começar com http:// ou https://)' }; }
+  if (!/^https?:$/.test(x.protocol)) return { erro: 'só links http/https' };
+  const h = x.hostname.toLowerCase().replace(/^www\./, '').replace(/^m\./, '');
+  const drm = SEM_SUPORTE.find(p => casaHost(h, p.hosts));
+  if (drm) return { erro: drm.nome + ' usa DRM; não é possível baixar daqui', nome: drm.nome };
+  const p = PLATAFORMAS.find(p => casaHost(h, p.hosts));
+  if (!p) return { nome: h, cor: '#64748b', generico: true, aviso: 'site não listado; vou tentar com o extrator genérico' };
+  let tipo = '';
+  if (p.nome.startsWith('YouTube')) {
+    const t = tipoLink(u);
+    tipo = t === 'lista' ? (/^\/(@|channel\/|c\/|user\/)/.test(x.pathname) ? 'canal' : 'playlist') : t === 'ambos' ? 'vídeo em playlist' : (/^\/shorts\//.test(x.pathname) ? 'shorts' : 'vídeo');
+  }
+  return { nome: p.nome, cor: p.cor, tipo, aviso: p.aviso || '' };
+}
+// Uma entrada por linha; se a linha tiver links, pega cada link dela (aceita varios por linha)
+function extrairLinks(texto) {
+  const out = [];
+  for (const linha of texto.split(/\r?\n/)) {
+    const l = linha.trim();
+    if (!l) continue;
+    const links = l.match(/https?:\/\/[^\s<>"']+/gi);
+    if (links) out.push(...links); else out.push(l);
+  }
+  return out;
+}
+const chip = (nome, cor, extra = '') => '<span class="plat"' + extra + '><i style="--c:' + cor + '"></i>' + esc(nome) + '</span>';
+
+function renderFunciona() {
+  const vit = PLATAFORMAS.filter(p => p.vitrine);
+  const resto = PLATAFORMAS.filter(p => !p.vitrine).map(p => p.nome).join(', ');
+  $('funciona').innerHTML = '<span>Funciona com</span>' + vit.map(p => chip(p.nome, p.cor)).join('') +
+    '<span class="plat mais" title="Também: ' + esc(resto) + ' e muitos outros. Lista completa: supportedsites.md do yt-dlp.">+1.700 sites</span>';
+}
+
+// Mostra, para cada linha colada, de onde e o link (enquanto a pessoa digita)
+function renderDetectados() {
+  const linhas = extrairLinks($('urls').value);
+  $('funciona').classList.toggle('hide', linhas.length > 0);
+  if (!linhas.length) { $('detectados').innerHTML = ''; return; }
+  const itens = linhas.slice(0, MAX + 5).map(u => {
+    const r = identificar(u);
+    if (r.erro) return '<div class="det erro">' + (r.nome ? chip(r.nome, 'var(--bad)') : '') + '<span class="u">' + esc(u) + '</span><span class="msg bad">' + esc(r.erro) + '</span></div>';
+    return '<div class="det' + (r.generico ? ' aviso' : '') + '">' + chip(r.nome, r.cor) +
+      (r.tipo ? '<span class="k">' + esc(r.tipo) + '</span>' : '') + '<span class="u">' + esc(u) + '</span>' +
+      (r.aviso ? '<span class="msg warn">' + esc(r.aviso) + '</span>' : '') + '</div>';
+  });
+  const plats = new Set(linhas.map(u => identificar(u)).filter(r => !r.erro).map(r => r.nome));
+  const nOk = linhas.filter(u => !identificar(u).erro).length;
+  const resumo = '<div class="small muted">' + nOk + ' link(s) válido(s)' + (nOk < linhas.length ? ' · ' + (linhas.length - nOk) + ' ignorado(s)' : '') + (plats.size ? ' · ' + [...plats].join(', ') : '') +
+    (linhas.length > MAX ? ' · <span class="bad">limite de ' + MAX + ' por vez</span>' : '') + '</div>';
+  $('detectados').innerHTML = resumo + itens.join('') + (linhas.length > MAX + 5 ? '<div class="small muted">…</div>' : '');
+}
+
+// Nome amigavel do extrator que o yt-dlp usou de fato
+function nomeExtrator(ex, url) {
+  if (!ex) return null;
+  if (/^generic$/i.test(ex)) return { nome: 'Link direto', cor: '#64748b' };
+  const r = identificar(url);
+  if (!r.erro && !r.generico) return { nome: r.nome, cor: r.cor };
+  return { nome: ex.replace(/(Tab|IE)$/, ''), cor: '#64748b' };
+}
+
 // ---------- audio x video ----------
 let tipo = 'audio';
 function definirTipo(t, salvar = true) {
@@ -371,6 +595,7 @@ function aplicarTipo() {
   document.querySelectorAll('.soVideo').forEach(e => e.classList.toggle('hide', tipo !== 'video'));
   if (tipo === 'audio') $('qWrap').classList.toggle('hide', !temQualidade($('formato').value));
   $('btnBaixar').textContent = tipo === 'video' ? 'Baixar vídeo' : 'Baixar áudio';
+  $('tipoDesc').textContent = tipo === 'video' ? 'Vídeo com áudio, em MP4 ou MKV, até 4K.' : 'Extrai só o áudio, em M4A, MP3, OPUS ou OGG.';
 }
 // o que vai para o servidor em cada envio, conforme o tipo escolhido
 const opcoesEnvio = () => tipo === 'video'
@@ -394,6 +619,12 @@ function tipoLink(u) {
 
 async function adicionar(urls) {
   if (!urls.length) { toast('Cole ao menos um link.'); return; }
+  const barrados = urls.filter(u => identificar(u).erro);
+  if (barrados.length) {
+    urls = urls.filter(u => !barrados.includes(u));
+    toast(barrados.length + ' link(s) ignorado(s): ' + identificar(barrados[0]).erro + (barrados.length > 1 ? '…' : ''), 6000);
+    if (!urls.length) return;
+  }
   const escolher = $('playlist').checked;
   const listas = urls.filter(u => { const t = tipoLink(u); return t === 'lista' || (t === 'ambos' && escolher); });
   const soltas = urls.filter(u => !listas.includes(u));
@@ -408,6 +639,7 @@ async function adicionar(urls) {
     } catch (e) { toast(e.message, 6000); return; }
   }
   $('urls').value = resto.join('\n');
+  renderDetectados();
   if (listas.length) {
     if (resto.length) toast('Uma playlist por vez: abrindo a primeira. As outras ficaram no campo de links.', 6000);
     abrirSelecao(listas[0]);
@@ -530,10 +762,11 @@ async function salvarCfg(parcial, msg) {
   catch (e) { toast(e.message, 6000); }
 }
 
-$('btnBaixar').onclick = () => adicionar($('urls').value.split(/\s+/).map(s => s.trim()).filter(Boolean));
+$('btnBaixar').onclick = () => adicionar(extrairLinks($('urls').value));
+$('urls').addEventListener('input', renderDetectados);
 $('urls').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('btnBaixar').click(); });
 $('btnColar').onclick = async () => {
-  try { const t = await navigator.clipboard.readText(); $('urls').value = ($('urls').value.trim() + '\n' + t.trim()).trim(); }
+  try { const t = await navigator.clipboard.readText(); $('urls').value = ($('urls').value.trim() + '\n' + t.trim()).trim(); renderDetectados(); }
   catch (e) { toast('O navegador não liberou a área de transferência. Use Ctrl+V no campo.'); }
 };
 $('formato').onchange = () => { $('qWrap').classList.toggle('hide', !temQualidade($('formato').value)); salvarCfg({ formato: $('formato').value }); };
@@ -607,6 +840,8 @@ $('modal').onclick = e => { if (e.target === $('modal')) $('modal').classList.ad
 $('bookmarklet').href = "javascript:(()=>{window.open('" + location.origin + "/?add='+encodeURIComponent(location.href),'baixador-audios')})()";
 $('bookmarklet').onclick = e => { e.preventDefault(); toast('Arraste este botão para a barra de favoritos.'); };
 
+renderFunciona();
+renderDetectados();
 (async () => {
   await atualizar();
   const add = new URLSearchParams(location.search).get('add');

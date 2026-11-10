@@ -237,6 +237,7 @@ function novoJob(u, opts) {
     subpasta: opts.subpasta ? nomePastaSeguro(opts.subpasta) : '',
     indice: Number.isInteger(opts.indice) && opts.indice > 0 ? opts.indice : 0,
     status: 'fila', titulo: opts.titulo ? String(opts.titulo).slice(0, 300) : '', pct: 0, vel: '', eta: '',
+    extrator: '', thumb: '',
     arquivos: [], erros: [], log: [], dica: '', criadoEm: Date.now(), proc: null, cancelado: false
   };
 }
@@ -309,6 +310,7 @@ function montarArgs(j) {
     '-o', modeloSaida(j),
     // cada item da fila e UM video; --max-downloads e a trava caso o link seja de playlist/canal
     '--no-playlist', '--max-downloads', '1',
+    '--print', 'before_dl:INFO|%(extractor_key)s|%(thumbnail|)s',
     '--print', 'before_dl:TITLE|%(title)s',
     '--print', 'after_move:FILE|%(filepath)s',
     '--no-simulate', '--progress',
@@ -397,6 +399,14 @@ function executar(j) {
         continue;
       }
       if (l.startsWith('POST|')) { j.status = 'convertendo'; j.pct = 100; continue; }
+      if (l.startsWith('INFO|')) {
+        // plataforma que o yt-dlp reconheceu de fato (ex.: Youtube, Instagram, Generic) e miniatura
+        const [, extrator, ...thumb] = l.split('|');
+        j.extrator = extrator || '';
+        const t = thumb.join('|');
+        if (/^https?:\/\//i.test(t)) j.thumb = t;
+        continue;
+      }
       if (l.startsWith('TITLE|')) { j.titulo = l.slice(6); j.pct = 0; continue; }
       if (l.startsWith('FILE|')) {
         const origem = l.slice(5);

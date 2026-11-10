@@ -72,7 +72,10 @@ sao por maquina e ficam fora do git.
      investigar problemas.
 2. Cole um ou mais links (um por linha), escolha o formato e clique em **Baixar audio**
    (ou use **Ctrl+Enter** no campo).
-3. Acompanhe o progresso na lista. Use **Mostrar** para abrir o arquivo no Explorer e **Log** para
+3. Enquanto voce cola, cada link aparece reconhecido com a plataforma (YouTube, Instagram,
+   TikTok...). Links de sites com DRM (Spotify, Netflix...) e textos que nao sao links sao
+   avisados e ignorados; sites fora da lista sao tentados pelo extrator generico do yt-dlp.
+4. Acompanhe o progresso na lista. Use **Mostrar** para abrir o arquivo no Explorer e **Log** para
    ver a saida completa do yt-dlp quando algo falhar.
 
 ### Formatos
