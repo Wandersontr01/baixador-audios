@@ -4,3 +4,4 @@ runtime/
 # por maquina
 config.json
 baixador.log
+.sem-atalho

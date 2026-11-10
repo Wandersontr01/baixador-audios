@@ -11,29 +11,33 @@ A interface roda no navegador; o backend (Node) usa o **yt-dlp** e o **FFmpeg**.
 
 ## Instalar numa maquina nova
 
-Repositorio pessoal e privado. Os executaveis **nao** ficam no git (o `avcodec` sozinho passa do
-limite de 100 MB do GitHub); cada maquina baixa os seus na primeira vez.
+### Jeito mais facil: versao portatil (recomendado)
 
-### 1. Pegar o codigo (escolha um)
+1. Abra a pagina de **Releases** do repositorio (logado na sua conta, o repo e privado):
+   https://github.com/Wandersontr01/baixador-audios/releases/latest
+2. Baixe o **`Baixador-portatil.zip`**. Ele ja vem com Node, yt-dlp e FFmpeg dentro.
+3. Botao direito no ZIP > **Propriedades** > marque **Desbloquear** > OK (evita o aviso de
+   seguranca do Windows ao abrir).
+4. Extraia onde quiser (ex.: `Documentos\Baixador`) e abra o **`ABRIR BAIXADOR.vbs`**.
+5. Na primeira vez ele oferece criar um **atalho na Area de Trabalho**. Depois e so clicar no icone.
 
-**Opcao A - Download do ZIP** (mais simples, para maquinas onde voce so vai usar o app)
+Nada e instalado no Windows e nao ha etapa de preparacao. A versao portatil e gerada
+automaticamente pelo GitHub Actions (workflow `Versao portatil`) a cada tag `v*` enviada, ou
+manualmente em **Actions > Versao portatil > Run workflow**.
 
-1. Abra https://github.com/Wandersontr01/baixador-audios **logado na sua conta** (repo privado).
-2. Clique em **Code > Download ZIP**.
-3. **Antes de extrair:** botao direito no ZIP > **Propriedades** > marque **Desbloquear** > OK.
-   Sem isso o Windows marca os arquivos como "vindos da internet" e mostra um aviso de seguranca
-   ao abrir o `.vbs`/`.bat` (se esquecer, e so confirmar o aviso).
-4. Extraia. A pasta vem como `baixador-audios-main`; pode renomear e colocar onde quiser.
+### Para mexer no codigo: git clone (ou Code > Download ZIP)
 
-**Opcao B - git clone** (para a maquina onde voce mexe no codigo, ou para atualizar com um comando)
+Os executaveis **nao** ficam no git (o `avcodec` sozinho passa do limite de 100 MB do GitHub).
+Nessa forma, a primeira abertura do `ABRIR BAIXADOR.vbs` pergunta e roda o `PREPARAR.bat`, que
+baixa os executaveis para dentro da pasta.
 
 ```
 git clone https://github.com/Wandersontr01/baixador-audios.git
 ```
 
-### 2. Primeira execucao
+### O que o PREPARAR baixa (so na forma git/ZIP do codigo)
 
-Abra o **`ABRIR BAIXADOR.vbs`**: na primeira vez ele pergunta e roda o **`PREPARAR.bat`**, que
+Na primeira abertura do **`ABRIR BAIXADOR.vbs`** ele pergunta e roda o **`PREPARAR.bat`**, que
 baixa para dentro da pasta (nada e instalado no Windows):
 
 | Pasta | Conteudo | Origem |
@@ -45,8 +49,10 @@ baixa para dentro da pasta (nada e instalado no Windows):
 Cada download e conferido pelo SHA-256 publicado pelo proprio projeto. Para baixar tudo de novo:
 `PREPARAR.bat -Forcar`.
 
-### 3. Atualizar para uma versao nova do codigo
+### Atualizar para uma versao nova
 
+- **Versao portatil:** baixe o ZIP da Release mais nova e extraia **por cima** da pasta atual
+  (o atalho continua funcionando; `config.json` e mantido).
 - **Com git:** `git pull` dentro da pasta.
 - **Com ZIP:** baixe o ZIP de novo (desbloqueie, passo 3 acima) e extraia **por cima** da pasta
   atual, substituindo os arquivos. O ZIP nao traz `bin\`, `runtime\` nem `config.json`, entao os
@@ -145,7 +151,8 @@ Se o antivirus apagar `bin\yt-dlp.exe`, adicione uma excecao para a pasta `bin` 
 
 | Arquivo | Funcao |
 |---|---|
-| `ABRIR BAIXADOR.vbs` | Inicia sem janela e abre o navegador |
+| `ABRIR BAIXADOR.vbs` | Inicia sem janela e abre o navegador; oferece o atalho na Area de Trabalho |
+| `baixador.ico` | Icone do atalho |
 | `INICIAR BAIXADOR.bat` | Mesmo que o .vbs (alternativa se o VBScript estiver desativado) |
 | `DIAGNOSTICO (com janela).bat` | Inicia com a janela de prompt visivel |
 | `server.js` | Servidor local, fila de downloads e chamadas ao yt-dlp |
