@@ -1,5 +1,5 @@
 @echo off
-rem Inicia o Baixador SEM janela: o servidor roda escondido e o navegador abre sozinho.
+rem Inicia o Baixa Tudo SEM janela: o servidor roda escondido e o navegador abre sozinho.
 rem Para ver a saida na tela (diagnostico), use "DIAGNOSTICO (com janela).bat".
 cd /d "%~dp0"
 if not exist "%~dp0runtime\node.exe" (

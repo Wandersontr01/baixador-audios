@@ -20,7 +20,7 @@ jobs:
       - name: Montar a pasta com os executaveis do Windows
         run: |
           set -euo pipefail
-          D=Baixador
+          D="Baixa Tudo"
           mkdir -p "$D/bin" "$D/runtime" tmp
           # codigo do projeto (sem a pasta .github)
           git ls-files -z | grep -zv '^\.github/' | xargs -0 -I{} cp --parents "{}" "$D/"
@@ -50,7 +50,7 @@ jobs:
           du -sh "$D"
 
       - name: Compactar
-        run: zip -q -9 -r Baixador-portatil.zip Baixador && ls -la Baixador-portatil.zip
+        run: zip -q -9 -r BaixaTudo-portatil.zip "Baixa Tudo" && ls -la BaixaTudo-portatil.zip
 
       - name: Publicar na Release
         env:
@@ -58,7 +58,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then TAG="$GITHUB_REF_NAME"; else TAG="portatil-$(date -u +%Y%m%d-%H%M)"; fi
-          NOTAS="Versao portatil para Windows 64 bits: extraia o ZIP e abra o ABRIR BAIXADOR.vbs. Nada a instalar.
+          NOTAS="Versao portatil para Windows 64 bits: extraia o ZIP e abra o ABRIR BAIXA TUDO.vbs. Nada a instalar.
 
           Inclui Node.js $NODE_V, yt-dlp $YTDLP_V e FFmpeg (build do projeto yt-dlp), todos conferidos pelo SHA-256 publicado por cada projeto."
-          gh release create "$TAG" Baixador-portatil.zip --target "$GITHUB_SHA" --title "Baixador $TAG" --notes "$NOTAS" --latest
+          gh release create "$TAG" BaixaTudo-portatil.zip --target "$GITHUB_SHA" --title "Baixa Tudo $TAG" --notes "$NOTAS" --latest

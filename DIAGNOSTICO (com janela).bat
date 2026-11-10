@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title Baixador de Audios - DIAGNOSTICO
+title Baixa Tudo - DIAGNOSTICO
 
 rem Usa o Node que vem na pasta (runtime\node.exe). Nao precisa instalar nada.
 set "NODE=%~dp0runtime\node.exe"
@@ -27,11 +27,11 @@ for /f "tokens=5" %%p in ('netstat -ano ^| findstr /r /c:":3940 .*LISTENING" /c:
   taskkill /PID %%p /F >nul 2>nul
 )
 
-echo Abrindo o Baixador no navegador...
+echo Abrindo o Baixa Tudo no navegador...
 start "" cmd /c "timeout /t 2 >nul & start http://localhost:3940"
 echo.
 echo ====================================================
-echo  Baixador rodando. NAO FECHE esta janela enquanto usar.
+echo  Baixa Tudo rodando. NAO FECHE esta janela enquanto usar.
 echo  Endereco: http://localhost:3940
 echo  Para encerrar: feche esta janela.
 echo ====================================================

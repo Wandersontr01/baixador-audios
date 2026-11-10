@@ -1,5 +1,5 @@
 /**
- * Baixador de Audios — app local (Node + navegador), portatil.
+ * Baixa Tudo — app local (Node + navegador), portatil.
  * Sobe um servidor em http://localhost:PORT, serve a interface e usa o yt-dlp
  * para baixar somente o audio.
  *
@@ -25,14 +25,14 @@ const YTDLP_ASSET = IS_WIN ? 'yt-dlp.exe' : (process.platform === 'darwin' ? 'yt
 const YTDLP_URL = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/' + YTDLP_ASSET;
 const NODE_MAJOR = parseInt(process.versions.node.split('.')[0], 10);
 
-// --oculto: iniciado pelo ABRIR BAIXADOR.vbs, sem janela. Saida vai para baixador.log
+// --oculto: iniciado pelo ABRIR BAIXA TUDO.vbs, sem janela. Saida vai para baixatudo.log
 // e o servidor se encerra sozinho quando a pagina fica fechada e nada esta baixando.
 // --abrir: abre o navegador ao iniciar (ou, se ja estiver rodando, so abre a pagina).
 const OCULTO = process.argv.includes('--oculto');
 const ABRIR = process.argv.includes('--abrir');
 const ENCERRAR_APOS_MS = 5 * 60 * 1000;
 if (OCULTO) {
-  const LOG_FILE = path.join(APP_DIR, 'baixador.log');
+  const LOG_FILE = path.join(APP_DIR, 'baixatudo.log');
   try { if (fs.existsSync(LOG_FILE) && fs.statSync(LOG_FILE).size > 1024 * 1024) fs.unlinkSync(LOG_FILE); } catch (e) {}
   const gravar = (...a) => { try { fs.appendFileSync(LOG_FILE, new Date().toLocaleString('pt-BR') + '  ' + a.join(' ') + '\n'); } catch (e) {} };
   console.log = gravar; console.error = gravar;
@@ -47,10 +47,10 @@ let ultimoAcesso = Date.now();
 // ---------- configuracao ----------
 const DEFAULT_CFG = {
   tipo: 'audio',           // audio | video (o que a tela abre selecionado)
-  pastaSaida: path.join(os.homedir(), 'Music', 'Baixador de Audios'),
+  pastaSaida: path.join(os.homedir(), 'Music', 'Baixa Tudo'),
   formato: 'm4a',          // audio: m4a | mp3 | opus | ogg
   qualidadeMp3: '192',     // kbps (MP3/OGG)
-  pastaVideos: path.join(os.homedir(), 'Videos', 'Baixador'),
+  pastaVideos: path.join(os.homedir(), 'Videos', 'Baixa Tudo'),
   formatoVideo: 'mp4',     // video: mp4 (compativel) | mkv (maxima qualidade)
   resolucao: '1080',       // 480 | 720 | 1080 | 1440 | 2160 | melhor
   legendas: false,         // baixar e embutir legendas oficiais (pt/en)
@@ -87,7 +87,7 @@ function rodar(cmd, args, opts = {}) {
 
 function baixarArquivo(u, destino, onProg, redir = 0) {
   return new Promise((resolve, reject) => {
-    https.get(u, { headers: { 'User-Agent': 'baixador-de-audios' } }, r => {
+    https.get(u, { headers: { 'User-Agent': 'baixa-tudo' } }, r => {
       if ([301, 302, 303, 307, 308].includes(r.statusCode) && r.headers.location) {
         r.resume();
         if (redir > 8) return reject(new Error('Redirecionamentos demais'));
@@ -245,7 +245,7 @@ function novoJob(u, opts) {
 // O yt-dlp trabalha numa pasta de preparo propria de cada download e o servidor move so o
 // arquivo final para a pasta de saida. Se ele usasse a pasta de saida direto, um M4A ja salvo
 // do mesmo video seria reaproveitado como "original" da conversao para MP3 e depois apagado.
-const pastaPreparo = j => path.join(os.tmpdir(), 'baixador-audios', process.pid + '-' + j.id);
+const pastaPreparo = j => path.join(os.tmpdir(), 'baixa-tudo', process.pid + '-' + j.id);
 
 function moverArquivo(origem, destino) {
   fs.mkdirSync(path.dirname(destino), { recursive: true });
@@ -645,7 +645,7 @@ const server = http.createServer(async (req, res) => {
 server.on('error', e => {
   if (e.code === 'EADDRINUSE') {
     // ja esta rodando: so abre a pagina
-    console.log('O Baixador ja esta aberto em http://localhost:' + PORT);
+    console.log('O Baixa Tudo ja esta aberto em http://localhost:' + PORT);
     if (ABRIR) abrirNavegador();
     return setTimeout(() => process.exit(0), 500);
   }
@@ -654,7 +654,7 @@ server.on('error', e => {
 });
 
 server.listen(PORT, '127.0.0.1', async () => {
-  console.log('Baixador de Audios rodando em http://localhost:' + PORT + (OCULTO ? ' (sem janela)' : ''));
+  console.log('Baixa Tudo rodando em http://localhost:' + PORT + (OCULTO ? ' (sem janela)' : ''));
   if (ABRIR) abrirNavegador();
   if (OCULTO) setInterval(() => {
     const ocupado = jobAtivo || jobs.some(j => j.status === 'fila') || setup.atualizando || setup.ffmpegInstalando;

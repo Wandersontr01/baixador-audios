@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Baixador</title>
+<title>Baixa Tudo</title>
 <style>
   :root{
     --bg:#0b0f17; --bg2:#0f1520; --card:#141b27; --card2:#182131; --line:#243044; --line2:#2e3c54;
@@ -172,12 +172,12 @@
   <div class="topo">
     <div class="marca">
       <div class="logo"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg></div>
-      <div><h1>Baixador</h1><p>Áudio e vídeo de mais de 1.700 sites</p></div>
+      <div><h1>Baixa Tudo</h1><p>Áudio e vídeo de mais de 1.700 sites</p></div>
     </div>
     <div class="tools">
       <span id="bYt" class="badge">yt-dlp…</span>
       <span id="bFf" class="badge">FFmpeg…</span>
-      <button class="ghost mini" id="btnEncerrar" title="Encerra o servidor do Baixador">Encerrar</button>
+      <button class="ghost mini" id="btnEncerrar" title="Encerra o servidor do Baixa Tudo">Encerrar</button>
     </div>
   </div>
 </header>
@@ -309,7 +309,7 @@
       <div class="campo">
         <label>Botão para a barra de favoritos</label>
         <div class="row">
-          <a id="bookmarklet" class="bm" href="#">⬇ Baixador</a>
+          <a id="bookmarklet" class="bm" href="#">⬇ Baixa Tudo</a>
           <span class="small muted">Arraste para a barra de favoritos. Em qualquer página de vídeo, clique nele: o link entra na fila com o tipo (Áudio/Vídeo) selecionado aqui.</span>
         </div>
       </div>
@@ -470,7 +470,7 @@ async function atualizar() {
   } catch (e) {
     $('bYt').className = 'badge bad'; $('bYt').textContent = 'Servidor fechado';
     $('bannerYt').className = 'banner bad';
-    $('bannerYt').innerHTML = encerrado ? 'Baixador encerrado. Para usar de novo, abra o <b>ABRIR BAIXADOR</b> na pasta do programa.' : 'Sem conexão com o servidor. Abra de novo o <b>ABRIR BAIXADOR</b> na pasta do programa.';
+    $('bannerYt').innerHTML = encerrado ? 'Baixa Tudo encerrado. Para usar de novo, clique no atalho ou abra o <b>ABRIR BAIXA TUDO</b> na pasta do programa.' : 'Sem conexão com o servidor. Abra de novo pelo atalho ou pelo <b>ABRIR BAIXA TUDO</b> na pasta do programa.';
   }
 }
 
@@ -837,7 +837,7 @@ $('mFechar').onclick = () => $('modal').classList.add('hide');
 $('modal').onclick = e => { if (e.target === $('modal')) $('modal').classList.add('hide'); };
 
 // bookmarklet: abre esta pagina com ?add=<url do video>
-$('bookmarklet').href = "javascript:(()=>{window.open('" + location.origin + "/?add='+encodeURIComponent(location.href),'baixador-audios')})()";
+$('bookmarklet').href = "javascript:(()=>{window.open('" + location.origin + "/?add='+encodeURIComponent(location.href),'baixa-tudo')})()";
 $('bookmarklet').onclick = e => { e.preventDefault(); toast('Arraste este botão para a barra de favoritos.'); };
 
 renderFunciona();

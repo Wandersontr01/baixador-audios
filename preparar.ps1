@@ -1,4 +1,4 @@
-# Prepara esta maquina para rodar o Baixador de Audios: baixa para dentro da pasta do projeto
+# Prepara esta maquina para rodar o Baixa Tudo: baixa para dentro da pasta do projeto
 # o Node.js portatil (runtime\), o yt-dlp e o FFmpeg (bin\). Nada e instalado no Windows.
 # Cada download e conferido pelo SHA-256 publicado pelo proprio projeto.
 # Pode rodar de novo a qualquer momento: so baixa o que estiver faltando.
@@ -10,12 +10,12 @@ $ProgressPreference = 'SilentlyContinue'   # sem isso o Invoke-WebRequest fica m
 $raiz = $PSScriptRoot
 $bin = Join-Path $raiz 'bin'
 $rt  = Join-Path $raiz 'runtime'
-$tmp = Join-Path $env:TEMP ('baixador-preparo-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+$tmp = Join-Path $env:TEMP ('baixatudo-preparo-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
 New-Item -ItemType Directory -Force -Path $bin, $rt, $tmp | Out-Null
 
 function Baixar($url, $destino) {
   Write-Host "    baixando $url"
-  Invoke-WebRequest -Uri $url -OutFile $destino -UseBasicParsing -UserAgent 'baixador-de-audios'
+  Invoke-WebRequest -Uri $url -OutFile $destino -UseBasicParsing -UserAgent 'baixa-tudo'
 }
 function ConferirHash($arquivo, $esperado) {
   $real = (Get-FileHash -Algorithm SHA256 -Path $arquivo).Hash
@@ -89,7 +89,7 @@ try {
   } else { Write-Host '[3/3] FFmpeg ja existe.' }
 
   Write-Host ''
-  Write-Host 'Tudo pronto. Abra o "ABRIR BAIXADOR.vbs".' -ForegroundColor Green
+  Write-Host 'Tudo pronto. Abra o "ABRIR BAIXA TUDO.vbs".' -ForegroundColor Green
   exit 0
 } catch {
   Write-Host ''

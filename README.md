@@ -1,4 +1,4 @@
-# Baixador de Audio e Video
+# Baixa Tudo
 
 App local para baixar **audio ou video** do YouTube e de outros ~1.700 sites suportados pelo
 yt-dlp (Instagram, TikTok, X/Twitter, Vimeo, Twitch, SoundCloud, Bandcamp, Internet Archive...).
@@ -14,11 +14,11 @@ A interface roda no navegador; o backend (Node) usa o **yt-dlp** e o **FFmpeg**.
 ### Jeito mais facil: versao portatil (recomendado)
 
 1. Abra a pagina de **Releases** do repositorio (logado na sua conta, o repo e privado):
-   https://github.com/Wandersontr01/baixador-audios/releases/latest
-2. Baixe o **`Baixador-portatil.zip`**. Ele ja vem com Node, yt-dlp e FFmpeg dentro.
+   https://github.com/Wandersontr01/baixa-tudo/releases/latest
+2. Baixe o **`BaixaTudo-portatil.zip`**. Ele ja vem com Node, yt-dlp e FFmpeg dentro.
 3. Botao direito no ZIP > **Propriedades** > marque **Desbloquear** > OK (evita o aviso de
    seguranca do Windows ao abrir).
-4. Extraia onde quiser (ex.: `Documentos\Baixador`) e abra o **`ABRIR BAIXADOR.vbs`**.
+4. Extraia onde quiser (ex.: `Documentos\Baixa Tudo`) e abra o **`ABRIR BAIXA TUDO.vbs`**.
 5. Na primeira vez ele oferece criar um **atalho na Area de Trabalho**. Depois e so clicar no icone.
 
 Nada e instalado no Windows e nao ha etapa de preparacao. A versao portatil e gerada
@@ -28,16 +28,16 @@ manualmente em **Actions > Versao portatil > Run workflow**.
 ### Para mexer no codigo: git clone (ou Code > Download ZIP)
 
 Os executaveis **nao** ficam no git (o `avcodec` sozinho passa do limite de 100 MB do GitHub).
-Nessa forma, a primeira abertura do `ABRIR BAIXADOR.vbs` pergunta e roda o `PREPARAR.bat`, que
+Nessa forma, a primeira abertura do `ABRIR BAIXA TUDO.vbs` pergunta e roda o `PREPARAR.bat`, que
 baixa os executaveis para dentro da pasta.
 
 ```
-git clone https://github.com/Wandersontr01/baixador-audios.git
+git clone https://github.com/Wandersontr01/baixa-tudo.git
 ```
 
 ### O que o PREPARAR baixa (so na forma git/ZIP do codigo)
 
-Na primeira abertura do **`ABRIR BAIXADOR.vbs`** ele pergunta e roda o **`PREPARAR.bat`**, que
+Na primeira abertura do **`ABRIR BAIXA TUDO.vbs`** ele pergunta e roda o **`PREPARAR.bat`**, que
 baixa para dentro da pasta (nada e instalado no Windows):
 
 | Pasta | Conteudo | Origem |
@@ -58,7 +58,7 @@ Cada download e conferido pelo SHA-256 publicado pelo proprio projeto. Para baix
   atual, substituindo os arquivos. O ZIP nao traz `bin\`, `runtime\` nem `config.json`, entao os
   executaveis e suas configuracoes ficam como estao.
 
-O yt-dlp se atualiza sozinho a cada 3 dias em qualquer das opcoes. `config.json` e `baixador.log`
+O yt-dlp se atualiza sozinho a cada 3 dias em qualquer das opcoes. `config.json` e `baixatudo.log`
 sao por maquina e ficam fora do git.
 
 > Em PCs corporativos, politicas de seguranca (AppLocker, antivirus) podem bloquear executaveis
@@ -67,13 +67,13 @@ sao por maquina e ficam fora do git.
 
 ## Como usar
 
-1. Duplo-clique em **`ABRIR BAIXADOR.vbs`**. O servidor roda escondido (sem janela de prompt)
+1. Duplo-clique em **`ABRIR BAIXA TUDO.vbs`**. O servidor roda escondido (sem janela de prompt)
    e o navegador abre em http://localhost:3940.
    - Se ja estiver rodando, o duplo-clique so abre a pagina de novo.
    - Para encerrar: botao **Encerrar** no topo da pagina. Ele tambem se encerra sozinho 5 minutos
      depois que a pagina e fechada, se nada estiver baixando.
-   - A saida do servidor fica em `baixador.log`.
-   - O **`INICIAR BAIXADOR.bat`** faz o mesmo (pisca uma janela por meio segundo e fecha).
+   - A saida do servidor fica em `baixatudo.log`.
+   - O **`INICIAR BAIXA TUDO.bat`** faz o mesmo (pisca uma janela por meio segundo e fecha).
    - **`DIAGNOSTICO (com janela).bat`**: o mesmo app com a janela preta mostrando tudo, para
      investigar problemas.
 2. Cole um ou mais links (um por linha), escolha o formato e clique em **Baixar audio**
@@ -109,11 +109,11 @@ No topo do card **Adicionar**, alterne entre **🎵 Audio** e **🎬 Video**. No
 
 Video e audio vem separados do YouTube e o FFmpeg junta os dois no final (status "Convertendo").
 Os videos vao para uma pasta propria (**Pasta onde os videos sao salvos**, padrao
-`Videos\Baixador`), separada das musicas. Capitulos, titulo e capa sao gravados no arquivo.
+`Videos\Baixa Tudo`), separada das musicas. Capitulos, titulo e capa sao gravados no arquivo.
 
 ### Configuracoes
 
-- **Pastas de saida**: audios em `Musicas\Baixador de Audios` e videos em `Videos\Baixador` (padrao). O botao **Escolher...** abre o
+- **Pastas de saida**: audios em `Musicas\Baixa Tudo` e videos em `Videos\Baixa Tudo` (padrao). O botao **Escolher...** abre o
   seletor do Windows (ele pode aparecer atras do navegador).
 - **Pular ja baixados**: guarda um registro em `.baixados-<formato>.txt` dentro da pasta de saida,
   para nao baixar de novo o mesmo video no mesmo formato.
@@ -134,7 +134,7 @@ Os videos vao para uma pasta propria (**Pasta onde os videos sao salvos**, padra
 ### Botao na barra de favoritos
 
 Na secao **Configuracoes**, arraste o botao **🎧 Baixar audio** para a barra de favoritos. Em
-qualquer video do YouTube, clique nele: o Baixador abre e coloca aquele video na fila usando o
+qualquer video do YouTube, clique nele: o Baixa Tudo abre e coloca aquele video na fila usando o
 formato atual. O servidor precisa estar rodando.
 
 ## Quando der erro
@@ -151,9 +151,9 @@ Se o antivirus apagar `bin\yt-dlp.exe`, adicione uma excecao para a pasta `bin` 
 
 | Arquivo | Funcao |
 |---|---|
-| `ABRIR BAIXADOR.vbs` | Inicia sem janela e abre o navegador; oferece o atalho na Area de Trabalho |
-| `baixador.ico` | Icone do atalho |
-| `INICIAR BAIXADOR.bat` | Mesmo que o .vbs (alternativa se o VBScript estiver desativado) |
+| `ABRIR BAIXA TUDO.vbs` | Inicia sem janela e abre o navegador; oferece o atalho na Area de Trabalho |
+| `baixatudo.ico` | Icone do atalho |
+| `INICIAR BAIXA TUDO.bat` | Mesmo que o .vbs (alternativa se o VBScript estiver desativado) |
 | `DIAGNOSTICO (com janela).bat` | Inicia com a janela de prompt visivel |
 | `server.js` | Servidor local, fila de downloads e chamadas ao yt-dlp |
 | `ui.html` | Interface |

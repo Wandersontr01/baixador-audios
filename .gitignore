@@ -3,5 +3,6 @@ bin/
 runtime/
 # por maquina
 config.json
+baixatudo.log
 baixador.log
 .sem-atalho
