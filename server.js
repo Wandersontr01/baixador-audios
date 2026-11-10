@@ -46,9 +46,14 @@ let ultimoAcesso = Date.now();
 
 // ---------- configuracao ----------
 const DEFAULT_CFG = {
+  tipo: 'audio',           // audio | video (o que a tela abre selecionado)
   pastaSaida: path.join(os.homedir(), 'Music', 'Baixador de Audios'),
-  formato: 'm4a',          // m4a | mp3 | opus
-  qualidadeMp3: '192',     // kbps
+  formato: 'm4a',          // audio: m4a | mp3 | opus | ogg
+  qualidadeMp3: '192',     // kbps (MP3/OGG)
+  pastaVideos: path.join(os.homedir(), 'Videos', 'Baixador'),
+  formatoVideo: 'mp4',     // video: mp4 (compativel) | mkv (maxima qualidade)
+  resolucao: '1080',       // 480 | 720 | 1080 | 1440 | 2160 | melhor
+  legendas: false,         // baixar e embutir legendas oficiais (pt/en)
   pularBaixados: true,
   cookiesNavegador: ''     // '' | firefox | edge | chrome | brave
 };
@@ -215,10 +220,19 @@ function nomePastaSeguro(s) {
   return n.slice(0, 100) || 'Playlist';
 }
 
+const FORMATOS = { audio: ['m4a', 'mp3', 'opus', 'ogg'], video: ['mp4', 'mkv'] };
+const QUALIDADES = { audio: ['128', '192', '256', '320'], video: ['480', '720', '1080', '1440', '2160', 'melhor'] };
+
+// Pasta final e arquivo de "ja baixados" de cada tipo/formato
+const pastaDestino = tipo => (tipo === 'video' ? config.pastaVideos : config.pastaSaida);
+const arquivoBaixados = (tipo, formato) =>
+  path.join(pastaDestino(tipo), '.baixados-' + (tipo === 'video' ? 'video-' : '') + formato + '.txt');
+
 function novoJob(u, opts) {
   return {
     id: ++seq, url: u,
-    formato: opts.formato, qualidade: opts.qualidade,
+    tipo: opts.tipo === 'video' ? 'video' : 'audio',
+    formato: opts.formato, qualidade: opts.qualidade, legendas: !!opts.legendas,
     // faixa escolhida de uma playlist: vai para subpasta propria, numerada pela posicao
     subpasta: opts.subpasta ? nomePastaSeguro(opts.subpasta) : '',
     indice: Number.isInteger(opts.indice) && opts.indice > 0 ? opts.indice : 0,
@@ -256,7 +270,7 @@ function argsComuns() {
 }
 
 // Le as faixas de uma playlist sem baixar nada (so titulos/ids)
-async function listarPlaylist(u) {
+async function listarPlaylist(u, tipo, formato) {
   const r = await rodar(YTDLP, [...argsComuns(), '--flat-playlist', '-J', '--yes-playlist', '--no-warnings',
     '--playlist-end', String(MAX_LISTAGEM), '--', u], { timeout: 240000 });
   if (r.err && !r.stdout.trim()) {
@@ -269,7 +283,7 @@ async function listarPlaylist(u) {
 
   let arquivo = new Set();
   try {
-    const txt = fs.readFileSync(path.join(config.pastaSaida, '.baixados-' + config.formato + '.txt'), 'utf8');
+    const txt = fs.readFileSync(arquivoBaixados(tipo, formato), 'utf8');
     arquivo = new Set(txt.split(/\r?\n/).map(l => l.trim().toLowerCase()).filter(Boolean));
   } catch (e) {}
 
@@ -289,7 +303,6 @@ async function listarPlaylist(u) {
 }
 
 function montarArgs(j) {
-  const pasta = config.pastaSaida;
   const a = [
     ...argsComuns(), '--newline', '--no-mtime', '--ignore-errors',
     '-P', pastaPreparo(j),
@@ -306,7 +319,26 @@ function montarArgs(j) {
   // passa a PASTA (e nao o ffmpeg.exe) para o yt-dlp achar tambem o ffprobe.exe ao lado
   if (ff && ff !== 'ffmpeg') a.push('--ffmpeg-location', path.dirname(ff));
 
-  if (j.formato === 'mp3') {
+  if (j.tipo === 'video') {
+    // Video e audio vem em streams separados e o FFmpeg junta (merge) no final.
+    // Filtros explicitos em vez de ordenacao (-S) para o resultado ser previsivel:
+    //  - MP4 "compativel": prefere H.264 + AAC, que toca em praticamente qualquer TV/celular sem o
+    //    servidor precisar converter. No YouTube o H.264 vai ate 1080p; acima disso cai para VP9/AV1.
+    //  - MKV: melhor qualidade disponivel (VP9/AV1/Opus), container que aceita qualquer codec.
+    const alt = j.qualidade === 'melhor' ? '' : '[height<=' + j.qualidade + ']';
+    if (j.formato === 'mp4') {
+      a.push('-f', [
+        'bv*' + alt + "[vcodec~='^(avc|h264)']+ba[acodec~='^(mp4a|aac)']",
+        'bv*' + alt + "[vcodec~='^(avc|h264)']+ba",
+        'bv*' + alt + '+ba',
+        'b' + alt, 'b'
+      ].join('/'), '--merge-output-format', 'mp4');
+    } else {
+      a.push('-f', ['bv*' + alt + '+ba', 'b' + alt, 'b'].join('/'), '--merge-output-format', 'mkv');
+    }
+    a.push('--embed-chapters');
+    if (j.legendas) a.push('--write-subs', '--sub-langs', 'pt.*,en.*', '--embed-subs');
+  } else if (j.formato === 'mp3') {
     a.push('-f', 'bestaudio/best', '-x', '--audio-format', 'mp3', '--audio-quality', (j.qualidade || '192') + 'K');
   } else if (j.formato === 'ogg') {
     // OGG Vorbis: o YouTube nao tem Vorbis, entao e recodificado (como o MP3).
@@ -320,7 +352,7 @@ function montarArgs(j) {
     a.push('-f', 'bestaudio[ext=m4a]/bestaudio/best');
   }
   if (ff) a.push('--embed-metadata', '--embed-thumbnail');
-  if (config.pularBaixados) a.push('--download-archive', path.join(pasta, '.baixados-' + j.formato + '.txt'));
+  if (config.pularBaixados) a.push('--download-archive', arquivoBaixados(j.tipo, j.formato));
   a.push('--', j.url);
   return a;
 }
@@ -347,7 +379,7 @@ function registrar(j, linha) {
 function executar(j) {
   jobAtivo = j;
   j.status = 'baixando';
-  try { fs.mkdirSync(config.pastaSaida, { recursive: true }); }
+  try { fs.mkdirSync(pastaDestino(j.tipo), { recursive: true }); }
   catch (e) { j.status = 'erro'; j.erros.push('Nao foi possivel criar a pasta de saida: ' + e.message); jobAtivo = null; return proximo(); }
 
   const args = montarArgs(j);
@@ -368,7 +400,7 @@ function executar(j) {
       if (l.startsWith('TITLE|')) { j.titulo = l.slice(6); j.pct = 0; continue; }
       if (l.startsWith('FILE|')) {
         const origem = l.slice(5);
-        const destino = path.join(config.pastaSaida, path.relative(pastaPreparo(j), origem));
+        const destino = path.join(pastaDestino(j.tipo), path.relative(pastaPreparo(j), origem));
         try { moverArquivo(origem, destino); j.arquivos.push(destino); }
         catch (e) { j.erros.push('Baixado, mas nao consegui mover para a pasta de saida: ' + e.message + ' (arquivo em ' + origem + ')'); }
         continue;
@@ -486,12 +518,14 @@ const server = http.createServer(async (req, res) => {
       const invalidas = urls.filter(s => !urlValida(s));
       if (validas.length + itensPl.length > MAX_POR_ENVIO)
         return enviarJson(res, 400, { erro: 'Limite de ' + MAX_POR_ENVIO + ' faixas por envio. Divida em partes.' });
-      const formato = ['m4a', 'mp3', 'opus', 'ogg'].includes(b.formato) ? b.formato : config.formato;
-      if (formato !== 'm4a' && !setup.ffmpeg)
-        return enviarJson(res, 400, { erro: 'O formato ' + formato.toUpperCase() + ' precisa do FFmpeg. Instale em Configuracoes ou use M4A.' });
-      const qualidade = ['128', '192', '256', '320'].includes(String(b.qualidade)) ? String(b.qualidade) : config.qualidadeMp3;
-      const novos = validas.map(x => novoJob(x, { formato, qualidade }))
-        .concat(itensPl.map(i => novoJob(i.url, { formato, qualidade, titulo: i.titulo, indice: i.indice, subpasta: b.playlist })));
+      const tipo = b.tipo === 'video' ? 'video' : 'audio';
+      const formato = FORMATOS[tipo].includes(b.formato) ? b.formato : (tipo === 'video' ? config.formatoVideo : config.formato);
+      if (!setup.ffmpeg && (tipo === 'video' || formato !== 'm4a'))
+        return enviarJson(res, 400, { erro: (tipo === 'video' ? 'Video' : 'O formato ' + formato.toUpperCase()) + ' precisa do FFmpeg. Instale em Configuracoes' + (tipo === 'video' ? '.' : ' ou use M4A.') });
+      const qualidade = QUALIDADES[tipo].includes(String(b.qualidade)) ? String(b.qualidade) : (tipo === 'video' ? config.resolucao : config.qualidadeMp3);
+      const base = { tipo, formato, qualidade, legendas: tipo === 'video' && !!b.legendas };
+      const novos = validas.map(x => novoJob(x, base))
+        .concat(itensPl.map(i => novoJob(i.url, { ...base, titulo: i.titulo, indice: i.indice, subpasta: b.playlist })));
       jobs.push(...novos);
       proximo();
       return enviarJson(res, 200, { adicionados: novos.length, invalidas });
@@ -500,7 +534,9 @@ const server = http.createServer(async (req, res) => {
       const b = await lerCorpo(req);
       if (!urlValida(b.url)) return enviarJson(res, 400, { erro: 'Link invalido' });
       if (setup.ytdlp !== 'ok') return enviarJson(res, 400, { erro: 'O yt-dlp ainda nao esta pronto.' });
-      try { return enviarJson(res, 200, { ...(await listarPlaylist(b.url)), max: MAX_POR_ENVIO }); }
+      const tipo = b.tipo === 'video' ? 'video' : 'audio';
+      const formato = FORMATOS[tipo].includes(b.formato) ? b.formato : FORMATOS[tipo][0];
+      try { return enviarJson(res, 200, { ...(await listarPlaylist(b.url, tipo, formato)), max: MAX_POR_ENVIO }); }
       catch (e) { return enviarJson(res, 400, { erro: e.message, dica: e.dica || '' }); }
     }
     if (rota === 'POST /api/cancelar') {
@@ -540,18 +576,24 @@ const server = http.createServer(async (req, res) => {
       const b = await lerCorpo(req);
       const j = b.id ? jobs.find(x => x.id === b.id) : null;
       if (j && j.arquivos.length && fs.existsSync(j.arquivos[j.arquivos.length - 1])) abrirNoExplorer(j.arquivos[j.arquivos.length - 1], true);
-      else { fs.mkdirSync(config.pastaSaida, { recursive: true }); abrirNoExplorer(config.pastaSaida, false); }
+      else { const p = pastaDestino(b.tipo); fs.mkdirSync(p, { recursive: true }); abrirNoExplorer(p, false); }
       return enviarJson(res, 200, { ok: true });
     }
     if (rota === 'POST /api/config') {
       const b = await lerCorpo(req);
       const novo = { ...config };
-      if (typeof b.pastaSaida === 'string' && b.pastaSaida.trim()) {
-        const p = path.resolve(b.pastaSaida.trim());
-        try { fs.mkdirSync(p, { recursive: true }); } catch (e) { return enviarJson(res, 400, { erro: 'Pasta invalida: ' + e.message }); }
-        novo.pastaSaida = p;
+      for (const campo of ['pastaSaida', 'pastaVideos']) {
+        if (typeof b[campo] === 'string' && b[campo].trim()) {
+          const p = path.resolve(b[campo].trim());
+          try { fs.mkdirSync(p, { recursive: true }); } catch (e) { return enviarJson(res, 400, { erro: 'Pasta invalida: ' + e.message }); }
+          novo[campo] = p;
+        }
       }
-      if (['m4a', 'mp3', 'opus', 'ogg'].includes(b.formato)) novo.formato = b.formato;
+      if (b.tipo === 'audio' || b.tipo === 'video') novo.tipo = b.tipo;
+      if (FORMATOS.audio.includes(b.formato)) novo.formato = b.formato;
+      if (FORMATOS.video.includes(b.formatoVideo)) novo.formatoVideo = b.formatoVideo;
+      if (QUALIDADES.video.includes(String(b.resolucao))) novo.resolucao = String(b.resolucao);
+      if (typeof b.legendas === 'boolean') novo.legendas = b.legendas;
       if (['128', '192', '256', '320'].includes(String(b.qualidadeMp3))) novo.qualidadeMp3 = String(b.qualidadeMp3);
       if (typeof b.pularBaixados === 'boolean') novo.pularBaixados = b.pularBaixados;
       if (['', 'firefox', 'edge', 'chrome', 'brave'].includes(b.cookiesNavegador)) novo.cookiesNavegador = b.cookiesNavegador;

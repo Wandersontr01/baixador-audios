@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Baixador de Audios</title>
+<title>Baixador de Áudio e Vídeo</title>
 <style>
   :root{ --bg:#0f172a; --card:#1e293b; --line:#334155; --txt:#e2e8f0; --mut:#94a3b8;
          --azul:#2563eb; --verde:#16a34a; --vermelho:#dc2626; --amarelo:#d97706; }
@@ -72,13 +72,17 @@
   .sel-count.max{color:#fbbf24}
   .spin{display:inline-block;width:14px;height:14px;border:2px solid #475569;border-top-color:#60a5fa;border-radius:50%;animation:gira .8s linear infinite;vertical-align:-2px;margin-right:6px}
   @keyframes gira{to{transform:rotate(360deg)}}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{background:transparent;color:var(--mut);border-radius:0;padding:7px 18px}
+  .seg button.on{background:var(--azul);color:#fff}
+  .seg button:disabled{opacity:.4}
   #toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#0b1220;border:1px solid var(--line);padding:9px 16px;border-radius:8px;font-size:13px;z-index:60;max-width:90vw}
   @media (max-width:640px){ .job .top{flex-wrap:wrap} .job .acts{margin-left:0} }
 </style>
 </head>
 <body>
 <header>
-  <h1>🎧 Baixador de Audios</h1>
+  <h1>🎧 Baixador de Áudio e Vídeo</h1>
   <div class="tools">
     <span id="bYt" class="badge">yt-dlp…</span>
     <span id="bFf" class="badge">FFmpeg…</span>
@@ -92,10 +96,16 @@
 
   <div class="card">
     <h2>1. Adicionar</h2>
-    <label for="urls">Links (um por linha, até 30 por vez) — YouTube, YouTube Music e outros sites suportados pelo yt-dlp</label>
+    <div class="row" style="margin-bottom:10px">
+      <div class="seg" role="tablist">
+        <button id="tAudio" class="on" data-tipo="audio">🎵 Áudio</button>
+        <button id="tVideo" data-tipo="video">🎬 Vídeo</button>
+      </div>
+    </div>
+    <label for="urls">Links (um por linha, até 30 por vez) — YouTube, Instagram, TikTok, Vimeo, X, Twitch, SoundCloud e +1.700 sites</label>
     <textarea id="urls" placeholder="https://www.youtube.com/watch?v=...&#10;https://youtu.be/..."></textarea>
     <div class="row" style="margin-top:10px">
-      <div>
+      <div class="soAudio">
         <label for="formato">Formato</label>
         <select id="formato">
           <option value="m4a">M4A — original, sem perda (recomendado)</option>
@@ -104,7 +114,7 @@
           <option value="ogg">OGG — Vorbis, convertido</option>
         </select>
       </div>
-      <div id="qWrap">
+      <div id="qWrap" class="soAudio">
         <label for="qualidade">Qualidade</label>
         <select id="qualidade">
           <option value="128">128 kbps</option>
@@ -113,9 +123,31 @@
           <option value="320">320 kbps</option>
         </select>
       </div>
+      <div class="soVideo hide">
+        <label for="formatoVideo">Formato</label>
+        <select id="formatoVideo">
+          <option value="mp4">MP4 — compatível com TV/celular (recomendado)</option>
+          <option value="mkv">MKV — máxima qualidade</option>
+        </select>
+      </div>
+      <div class="soVideo hide">
+        <label for="resolucao">Resolução máxima</label>
+        <select id="resolucao">
+          <option value="480">480p</option>
+          <option value="720">720p</option>
+          <option value="1080">1080p (Full HD)</option>
+          <option value="1440">1440p</option>
+          <option value="2160">2160p (4K)</option>
+          <option value="melhor">A melhor disponível</option>
+        </select>
+      </div>
+      <div class="soVideo hide">
+        <label>&nbsp;</label>
+        <label class="chk" title="Legendas oficiais em português e inglês, quando o vídeo tiver"><input type="checkbox" id="legendas"> Legendas (pt/en)</label>
+      </div>
       <div>
         <label>&nbsp;</label>
-        <label class="chk" title="Links só de playlist (sem vídeo específico) sempre abrem a seleção"><input type="checkbox" id="playlist" checked> Link de playlist: escolher as faixas <span class="muted">(desmarcado = só o vídeo do link)</span></label>
+        <label class="chk" title="Links só de playlist (sem vídeo específico) sempre abrem a seleção"><input type="checkbox" id="playlist" checked> Link de playlist: escolher os itens <span class="muted">(desmarcado = só o do link)</span></label>
       </div>
     </div>
     <div class="row" style="margin-top:14px">
@@ -123,6 +155,7 @@
       <button id="btnColar" class="ghost">Colar da área de transferência</button>
       <span id="addMsg" class="small muted"></span>
     </div>
+    <div id="vidDica" class="small muted soVideo hide" style="margin-top:8px">MP4 prefere H.264 + AAC, que toca direto em quase qualquer TV e celular. No YouTube o H.264 vai até 1080p; acima disso o vídeo vem em VP9/AV1, que aparelhos antigos podem não reproduzir.</div>
     <div id="ffAviso" class="small warn hide" style="margin-top:8px"></div>
   </div>
 
@@ -140,11 +173,17 @@
     <label for="pasta">Pasta onde os áudios são salvos</label>
     <div class="row">
       <input type="text" id="pasta" class="grow">
-      <button class="ghost" id="btnEscolher">Escolher…</button>
-      <button id="btnSalvarPasta">Salvar</button>
+      <button class="ghost" data-escolher="pasta">Escolher…</button>
+      <button data-salvar="pasta">Salvar</button>
+    </div>
+    <label for="pastaVid">Pasta onde os vídeos são salvos</label>
+    <div class="row">
+      <input type="text" id="pastaVid" class="grow">
+      <button class="ghost" data-escolher="pastaVid">Escolher…</button>
+      <button data-salvar="pastaVid">Salvar</button>
     </div>
     <div class="row" style="margin-top:12px;gap:22px">
-      <label class="chk"><input type="checkbox" id="pular"> Pular vídeos já baixados (no mesmo formato)</label>
+      <label class="chk"><input type="checkbox" id="pular"> Pular itens já baixados (no mesmo formato)</label>
       <div class="row" style="gap:6px">
         <span class="small muted">Usar cookies do navegador:</span>
         <select id="cookies">
@@ -165,8 +204,8 @@
       <span id="cfgMsg" class="small muted"></span>
     </div>
 
-    <label style="margin-top:16px">Botão para a barra de favoritos — arraste para a barra e clique nele em qualquer vídeo do YouTube:</label>
-    <a id="bookmarklet" class="bm" href="#">🎧 Baixar áudio</a>
+    <label style="margin-top:16px">Botão para a barra de favoritos — arraste para a barra e clique nele em qualquer vídeo (usa o tipo Áudio/Vídeo que estiver selecionado aqui):</label>
+    <a id="bookmarklet" class="bm" href="#">🎧 Baixador</a>
   </div>
 </main>
 
@@ -242,8 +281,10 @@ function renderSetup(s) {
   if (!s.ffmpeg && $('formato').value !== 'm4a') $('formato').value = 'm4a';
   const av = $('ffAviso');
   av.classList.toggle('hide', !!s.ffmpeg);
-  av.textContent = 'Sem FFmpeg: só M4A está disponível e a capa/título não são gravados no arquivo. Instale em Configurações para liberar MP3/OPUS/OGG.';
-  $('qWrap').classList.toggle('hide', !temQualidade($('formato').value));
+  av.textContent = 'Sem FFmpeg: só áudio M4A está disponível e a capa/título não são gravados no arquivo. Instale em Configurações para liberar MP3/OPUS/OGG e vídeo.';
+  $('tVideo').disabled = !s.ffmpeg;
+  if (!s.ffmpeg && tipo === 'video') definirTipo('audio', false);
+  aplicarTipo();
 
   const bn = $('bannerNode');
   bn.classList.toggle('hide', !s.nodeAntigo);
@@ -261,9 +302,12 @@ function renderJobs(jobs) {
     const fim = ['concluido','parcial','pulado'].includes(j.status);
     const pct = fim ? 100 : (j.pct || 0);
     const barCls = j.status === 'convertendo' ? 'conv' : (fim ? 'done' : '');
-    let meta = j.formato.toUpperCase() + (temQualidade(j.formato) ? (j.formato === 'ogg' ? ' ~' : ' ') + j.qualidade + ' kbps' : '') + (j.subpasta ? ' · ' + esc(j.subpasta) + (j.indice ? ' #' + j.indice : '') : '');
+    let meta = (j.tipo === 'video'
+        ? '🎬 ' + j.formato.toUpperCase() + ' · ' + (j.qualidade === 'melhor' ? 'melhor resolução' : 'até ' + j.qualidade + 'p') + (j.legendas ? ' · legendas' : '')
+        : '🎵 ' + j.formato.toUpperCase() + (temQualidade(j.formato) ? (j.formato === 'ogg' ? ' ~' : ' ') + j.qualidade + ' kbps' : ''))
+      + (j.subpasta ? ' · ' + esc(j.subpasta) + (j.indice ? ' #' + j.indice : '') : '');
     if (j.status === 'baixando') meta += ' · ' + pct.toFixed(1) + '%' + (j.vel ? ' · ' + esc(j.vel) : '') + (j.eta && j.eta !== 'Unknown' ? ' · faltam ' + esc(j.eta) : '');
-    if (j.status === 'convertendo') meta += ' · convertendo / gravando capa…';
+    if (j.status === 'convertendo') meta += j.tipo === 'video' ? ' · juntando vídeo e áudio / gravando capa…' : ' · convertendo / gravando capa…';
     if (j.arquivos.length) meta += ' · ' + j.arquivos.length + ' arquivo(s)';
     if (j.status === 'pulado') meta += ' · já estava na pasta (desmarque "Pular já baixados" para baixar de novo)';
     const arquivos = j.arquivos.length ? '<div class="meta ok">' + j.arquivos.slice(-3).map(esc).join('<br>') + (j.arquivos.length > 3 ? '<br>…' : '') + '</div>' : '';
@@ -287,6 +331,11 @@ function renderConfig(c) {
   if (cfgCarregada) return;
   cfgCarregada = true;
   $('pasta').value = c.pastaSaida;
+  $('pastaVid').value = c.pastaVideos;
+  $('formatoVideo').value = c.formatoVideo;
+  $('resolucao').value = c.resolucao;
+  $('legendas').checked = !!c.legendas;
+  definirTipo(c.tipo === 'video' ? 'video' : 'audio', false);
   $('formato').value = c.formato;
   $('qualidade').value = c.qualidadeMp3;
   $('pular').checked = !!c.pularBaixados;
@@ -307,6 +356,27 @@ async function atualizar() {
 }
 
 const MAX = 30;
+
+// ---------- audio x video ----------
+let tipo = 'audio';
+function definirTipo(t, salvar = true) {
+  tipo = t;
+  $('tAudio').classList.toggle('on', t === 'audio');
+  $('tVideo').classList.toggle('on', t === 'video');
+  aplicarTipo();
+  if (salvar) salvarCfg({ tipo: t });
+}
+function aplicarTipo() {
+  document.querySelectorAll('.soAudio').forEach(e => e.classList.toggle('hide', tipo !== 'audio'));
+  document.querySelectorAll('.soVideo').forEach(e => e.classList.toggle('hide', tipo !== 'video'));
+  if (tipo === 'audio') $('qWrap').classList.toggle('hide', !temQualidade($('formato').value));
+  $('btnBaixar').textContent = tipo === 'video' ? 'Baixar vídeo' : 'Baixar áudio';
+}
+// o que vai para o servidor em cada envio, conforme o tipo escolhido
+const opcoesEnvio = () => tipo === 'video'
+  ? { tipo, formato: $('formatoVideo').value, qualidade: $('resolucao').value, legendas: $('legendas').checked }
+  : { tipo, formato: $('formato').value, qualidade: $('qualidade').value };
+const nomeItens = () => (tipo === 'video' ? 'vídeo(s)' : 'faixa(s)');
 // formatos recodificados, que tem seletor de qualidade
 const temQualidade = f => f === 'mp3' || f === 'ogg';
 
@@ -332,7 +402,7 @@ async function adicionar(urls) {
   let resto = listas.slice(1);
   if (soltas.length) {
     try {
-      const r = await api('/api/baixar', { urls: soltas, formato: $('formato').value, qualidade: $('qualidade').value });
+      const r = await api('/api/baixar', { urls: soltas, ...opcoesEnvio() });
       $('addMsg').textContent = r.adicionados + ' adicionado(s) à fila' + (r.invalidas.length ? ' · ignorados (link inválido): ' + r.invalidas.join(', ') : '');
       atualizar();
     } catch (e) { toast(e.message, 6000); return; }
@@ -363,10 +433,11 @@ async function abrirSelecao(url) {
   $('selInfo').innerHTML = '<span class="spin"></span>Buscando a lista de faixas (pode levar alguns segundos em playlists grandes)…';
   $('selCorpo').classList.add('hide');
   try {
-    const r = await api('/api/listar', { url });
+    const env = opcoesEnvio();
+    const r = await api('/api/listar', { url, tipo: env.tipo, formato: env.formato });
     if (!r.ehPlaylist || !r.itens.length) {
       $('sel').classList.add('hide');
-      if (tipoLink(url) === 'ambos') { toast('Não encontrei a playlist; baixando só o vídeo do link.'); return api('/api/baixar', { urls: [url], formato: $('formato').value, qualidade: $('qualidade').value }).then(atualizar).catch(e => toast(e.message)); }
+      if (tipoLink(url) === 'ambos') { toast('Não encontrei a playlist; baixando só o vídeo do link.'); return api('/api/baixar', { urls: [url], ...opcoesEnvio() }).then(atualizar).catch(e => toast(e.message)); }
       return toast('Esse link não tem faixas para listar.', 5000);
     }
     let v = null; try { v = new URL(url).searchParams.get('v'); } catch (e) {}
@@ -374,8 +445,8 @@ async function abrirSelecao(url) {
     r.itens.forEach((it, i) => { if (v && it.id === v && !it.indisponivel) sel.marcados.add(i); });
     $('selTit').textContent = r.titulo;
     const nBaix = r.itens.filter(i => i.jaBaixado).length, nInd = r.itens.filter(i => i.indisponivel).length;
-    $('selInfo').textContent = r.itens.length + ' faixa(s)' + (r.truncado ? ' (mostrando as primeiras ' + r.itens.length + ')' : '') +
-      (nBaix ? ' · ' + nBaix + ' já baixada(s) em ' + $('formato').value.toUpperCase() : '') + (nInd ? ' · ' + nInd + ' indisponível(is)' : '') +
+    $('selInfo').textContent = r.itens.length + ' item(ns)' + (r.truncado ? ' (mostrando os primeiros ' + r.itens.length + ')' : '') +
+      (nBaix ? ' · ' + nBaix + ' já baixado(s) em ' + (env.tipo === 'video' ? 'vídeo ' : '') + env.formato.toUpperCase() : '') + (nInd ? ' · ' + nInd + ' indisponível(is)' : '') +
       ' · salvas na subpasta "' + nomePasta(r.titulo) + '"';
     $('selBusca').value = '';
     $('selCorpo').classList.remove('hide');
@@ -394,7 +465,7 @@ function renderSelecao() {
     if (filtro && !(it.titulo + ' ' + it.canal).toLowerCase().includes(filtro)) return '';
     const marcado = sel.marcados.has(i);
     const dis = it.indisponivel || (cheio && !marcado);
-    const tags = (it.jaBaixado ? '<span class="tg ok">já baixada</span>' : '') + (it.indisponivel ? '<span class="tg">indisponível</span>' : '');
+    const tags = (it.jaBaixado ? '<span class="tg ok">já baixado</span>' : '') + (it.indisponivel ? '<span class="tg">indisponível</span>' : '');
     return '<label class="sel-item' + (dis ? ' dis' : '') + '" data-i="' + i + '"><input type="checkbox"' + (marcado ? ' checked' : '') + (dis ? ' disabled' : '') + '>' +
       '<span class="ix">' + it.indice + '</span><span class="tx"><div>' + esc(it.titulo) + '</div><div class="small muted">' +
       esc([it.canal, fmtDur(it.duracao)].filter(Boolean).join(' · ')) + '</div></span>' + tags + '</label>';
@@ -404,7 +475,7 @@ function renderSelecao() {
   $('selCount').classList.toggle('max', cheio);
   $('selDica').textContent = cheio ? 'Limite de ' + MAX + ' por vez atingido. Baixe estas e depois selecione as próximas.' : 'Shift+clique marca um intervalo.';
   $('selBaixar').disabled = !n;
-  $('selBaixar').textContent = n ? 'Baixar ' + n + ' faixa(s)' : 'Baixar selecionadas';
+  $('selBaixar').textContent = n ? 'Baixar ' + n + ' ' + nomeItens() : 'Baixar selecionados';
 }
 
 function marcar(i, valor) {
@@ -444,18 +515,18 @@ $('selBaixar').onclick = async () => {
   if (!sel || !sel.marcados.size) return;
   const itens = [...sel.marcados].sort((a, b) => a - b).map(i => ({ url: sel.itens[i].url, titulo: sel.itens[i].titulo, indice: sel.itens[i].indice }));
   try {
-    const r = await api('/api/baixar', { itens, playlist: sel.titulo, formato: $('formato').value, qualidade: $('qualidade').value });
+    const r = await api('/api/baixar', { itens, playlist: sel.titulo, ...opcoesEnvio() });
     // marca como "na fila" para nao selecionar de novo por engano
     [...sel.marcados].forEach(i => { sel.itens[i].jaBaixado = true; });
     sel.marcados.clear();
     $('sel').classList.add('hide');
-    $('addMsg').textContent = r.adicionados + ' faixa(s) de "' + sel.titulo + '" adicionada(s) à fila';
+    $('addMsg').textContent = r.adicionados + ' ' + nomeItens() + ' de "' + sel.titulo + '" na fila';
     atualizar();
   } catch (e) { toast(e.message, 6000); }
 };
 
 async function salvarCfg(parcial, msg) {
-  try { const r = await api('/api/config', parcial); $('pasta').value = r.config.pastaSaida; if (msg) toast(msg); }
+  try { const r = await api('/api/config', parcial); $('pasta').value = r.config.pastaSaida; $('pastaVid').value = r.config.pastaVideos; if (msg) toast(msg); }
   catch (e) { toast(e.message, 6000); }
 }
 
@@ -469,13 +540,22 @@ $('formato').onchange = () => { $('qWrap').classList.toggle('hide', !temQualidad
 $('qualidade').onchange = () => salvarCfg({ qualidadeMp3: $('qualidade').value });
 $('pular').onchange = () => salvarCfg({ pularBaixados: $('pular').checked });
 $('cookies').onchange = () => salvarCfg({ cookiesNavegador: $('cookies').value }, $('cookies').value ? 'Vai usar os cookies do ' + $('cookies').selectedOptions[0].text : 'Cookies desativados');
-$('btnSalvarPasta').onclick = () => salvarCfg({ pastaSaida: $('pasta').value }, 'Pasta salva');
-$('btnEscolher').onclick = async () => {
+const CAMPO_PASTA = { pasta: 'pastaSaida', pastaVid: 'pastaVideos' };
+document.querySelectorAll('[data-salvar]').forEach(b => b.onclick = () => {
+  const id = b.dataset.salvar; salvarCfg({ [CAMPO_PASTA[id]]: $(id).value }, 'Pasta salva');
+});
+document.querySelectorAll('[data-escolher]').forEach(b => b.onclick = async () => {
+  const id = b.dataset.escolher;
   toast('Abrindo seletor de pasta (pode aparecer atrás do navegador)…');
-  try { const r = await api('/api/escolher-pasta', {}); if (r.pasta) { $('pasta').value = r.pasta; salvarCfg({ pastaSaida: r.pasta }, 'Pasta salva'); } }
+  try { const r = await api('/api/escolher-pasta', {}); if (r.pasta) { $(id).value = r.pasta; salvarCfg({ [CAMPO_PASTA[id]]: r.pasta }, 'Pasta salva'); } }
   catch (e) { toast(e.message); }
-};
-$('btnAbrirPasta').onclick = () => api('/api/abrir', {}).catch(e => toast(e.message));
+});
+$('tAudio').onclick = () => definirTipo('audio');
+$('tVideo').onclick = () => definirTipo('video');
+$('formatoVideo').onchange = () => salvarCfg({ formatoVideo: $('formatoVideo').value });
+$('resolucao').onchange = () => salvarCfg({ resolucao: $('resolucao').value });
+$('legendas').onchange = () => salvarCfg({ legendas: $('legendas').checked });
+$('btnAbrirPasta').onclick = () => api('/api/abrir', { tipo }).catch(e => toast(e.message));
 $('btnCancelarTodos').onclick = async () => {
   const pend = (estado?.jobs || []).filter(j => ['fila','baixando','convertendo'].includes(j.status));
   if (!pend.length) return;

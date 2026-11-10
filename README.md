@@ -1,8 +1,13 @@
-# Baixador de Audios
+# Baixador de Audio e Video
 
-App local para baixar **somente o audio** de videos do YouTube (e de outros sites suportados pelo
-yt-dlp). A interface roda no navegador; o backend (Node) usa o **yt-dlp** para fazer o download.
-Tudo roda no seu PC.
+App local para baixar **audio ou video** do YouTube e de outros ~1.700 sites suportados pelo
+yt-dlp (Instagram, TikTok, X/Twitter, Vimeo, Twitch, SoundCloud, Bandcamp, Internet Archive...).
+A interface roda no navegador; o backend (Node) usa o **yt-dlp** e o **FFmpeg**. Tudo roda no seu PC.
+
+> Conteudo com DRM (Netflix, Prime Video, Spotify, filmes da Globoplay/Disney/HBO etc.) **nao**
+> e baixado. Itens que exigem login (privados, de membros, cursos) precisam da opcao
+> "Usar cookies do navegador". A lista oficial de sites fica em `supportedsites.md` no repositorio
+> yt-dlp/yt-dlp, ou rode `bin\yt-dlp.exe --list-extractors`.
 
 ## Instalar numa maquina nova
 
@@ -82,9 +87,24 @@ sao por maquina e ficam fora do git.
 > O YouTube entrega no maximo ~128 kbps AAC ou ~160 kbps Opus. Converter para MP3/OGG em bitrate alto nao
 > aumenta a qualidade, so o tamanho do arquivo.
 
+### Video
+
+No topo do card **Adicionar**, alterne entre **🎵 Audio** e **🎬 Video**. No modo video:
+
+| Opcao | O que faz |
+|---|---|
+| **MP4** (padrao) | Prefere H.264 + AAC, que toca direto em quase qualquer TV, celular e no Jellyfin sem conversao. No YouTube o H.264 vai ate 1080p; acima disso vem VP9/AV1 |
+| **MKV** | Melhor qualidade disponivel (VP9/AV1/Opus), em container que aceita qualquer codec |
+| **Resolucao maxima** | 480p a 4K, ou "a melhor disponivel". Se o video nao tiver essa resolucao, pega a maior abaixo dela |
+| **Legendas (pt/en)** | Baixa e embute as legendas oficiais em portugues/ingles, quando o video tiver (nao inclui as automaticas) |
+
+Video e audio vem separados do YouTube e o FFmpeg junta os dois no final (status "Convertendo").
+Os videos vao para uma pasta propria (**Pasta onde os videos sao salvos**, padrao
+`Videos\Baixador`), separada das musicas. Capitulos, titulo e capa sao gravados no arquivo.
+
 ### Configuracoes
 
-- **Pasta de saida**: por padrao `Musicas\Baixador de Audios`. O botao **Escolher...** abre o
+- **Pastas de saida**: audios em `Musicas\Baixador de Audios` e videos em `Videos\Baixador` (padrao). O botao **Escolher...** abre o
   seletor do Windows (ele pode aparecer atras do navegador).
 - **Pular ja baixados**: guarda um registro em `.baixados-<formato>.txt` dentro da pasta de saida,
   para nao baixar de novo o mesmo video no mesmo formato.
