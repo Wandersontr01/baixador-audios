@@ -12,6 +12,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawn, execFile } = require('child_process');
+const { criarConversor } = require('./conversor');
 
 const PORT = 3940;
 const APP_DIR = __dirname;
@@ -54,6 +55,9 @@ const DEFAULT_CFG = {
   formatoVideo: 'mp4',     // video: mp4 (compativel) | mkv (maxima qualidade)
   resolucao: '1080',       // 480 | 720 | 1080 | 1440 | 2160 | melhor
   legendas: false,         // baixar e embutir legendas oficiais (pt/en)
+  pastaConvertidos: '',    // conversoes; vazio = subpasta "Convertidos" dentro da pasta dos audios
+  formatoConversao: 'mp3', // mp3 | m4a | opus | ogg | flac | wav
+  qualidadeConversao: '192',
   pularBaixados: true,
   cookiesNavegador: ''     // '' | firefox | edge | chrome | brave
 };
@@ -208,6 +212,14 @@ async function instalarFfmpeg() {
 
 // ---------- fila de downloads ----------
 const jobs = [];
+
+// ---------- conversor de audio (modulo proprio) ----------
+const pastaConversoes = () => config.pastaConvertidos || path.join(config.pastaSaida, 'Convertidos');
+const conversor = criarConversor({
+  ffmpeg: () => setup.ffmpeg,
+  pastaSaida: pastaConversoes,
+  registrarLog: m => console.log(m)
+});
 let seq = 0;
 let jobAtivo = null;
 
@@ -514,7 +526,14 @@ const server = http.createServer(async (req, res) => {
     }
     if (rota === 'GET /api/estado') {
       ultimoAcesso = Date.now();
-      return enviarJson(res, 200, { setup, config, jobs: jobs.map(jobPublico) });
+      return enviarJson(res, 200, { setup, config: { ...config, pastaConversoesEfetiva: pastaConversoes() }, jobs: jobs.map(jobPublico),
+        conversoes: conversor.publico(), maxParalelo: conversor.MAX_PARALELO });
+    }
+    // upload de arquivo para converter (corpo binario, nao JSON)
+    if (rota === 'POST /api/converter/enviar') {
+      if (!String(req.headers['content-type'] || '').includes('application/octet-stream'))
+        return enviarJson(res, 415, { erro: 'Use application/octet-stream' });
+      return conversor.receber(req, res, u.searchParams, enviarJson);
     }
     if (req.method === 'POST' && !String(req.headers['content-type'] || '').includes('application/json'))
       return enviarJson(res, 415, { erro: 'Use application/json' });
@@ -592,7 +611,8 @@ const server = http.createServer(async (req, res) => {
     if (rota === 'POST /api/config') {
       const b = await lerCorpo(req);
       const novo = { ...config };
-      for (const campo of ['pastaSaida', 'pastaVideos']) {
+      if (b.pastaConvertidos === '') novo.pastaConvertidos = '';
+      for (const campo of ['pastaSaida', 'pastaVideos', 'pastaConvertidos']) {
         if (typeof b[campo] === 'string' && b[campo].trim()) {
           const p = path.resolve(b[campo].trim());
           try { fs.mkdirSync(p, { recursive: true }); } catch (e) { return enviarJson(res, 400, { erro: 'Pasta invalida: ' + e.message }); }
@@ -604,6 +624,8 @@ const server = http.createServer(async (req, res) => {
       if (FORMATOS.video.includes(b.formatoVideo)) novo.formatoVideo = b.formatoVideo;
       if (QUALIDADES.video.includes(String(b.resolucao))) novo.resolucao = String(b.resolucao);
       if (typeof b.legendas === 'boolean') novo.legendas = b.legendas;
+      if (['mp3', 'm4a', 'opus', 'ogg', 'flac', 'wav'].includes(b.formatoConversao)) novo.formatoConversao = b.formatoConversao;
+      if (['128', '192', '256', '320'].includes(String(b.qualidadeConversao))) novo.qualidadeConversao = String(b.qualidadeConversao);
       if (['128', '192', '256', '320'].includes(String(b.qualidadeMp3))) novo.qualidadeMp3 = String(b.qualidadeMp3);
       if (typeof b.pularBaixados === 'boolean') novo.pularBaixados = b.pularBaixados;
       if (['', 'firefox', 'edge', 'chrome', 'brave'].includes(b.cookiesNavegador)) novo.cookiesNavegador = b.cookiesNavegador;
@@ -626,7 +648,26 @@ const server = http.createServer(async (req, res) => {
       const f = await acharFfmpeg();
       return enviarJson(res, 200, { ffmpeg: f });
     }
+    if (rota === 'POST /api/converter/cancelar') {
+      const b = await lerCorpo(req);
+      return enviarJson(res, conversor.cancelar(b.id) ? 200 : 404, { ok: true });
+    }
+    if (rota === 'POST /api/converter/cancelar-todos') {
+      return enviarJson(res, 200, { cancelados: conversor.cancelarTodos() });
+    }
+    if (rota === 'POST /api/converter/limpar') {
+      conversor.limpar();
+      return enviarJson(res, 200, { ok: true });
+    }
+    if (rota === 'POST /api/converter/abrir') {
+      const b = await lerCorpo(req);
+      const c = b.id ? conversor.buscar(b.id) : null;
+      if (c && c.saida && fs.existsSync(c.saida)) abrirNoExplorer(c.saida, true);
+      else { const p = pastaConversoes(); fs.mkdirSync(p, { recursive: true }); abrirNoExplorer(p, false); }
+      return enviarJson(res, 200, { ok: true });
+    }
     if (rota === 'POST /api/encerrar') {
+      conversor.encerrar();
       for (const j of jobs) if (j.proc) { j.cancelado = true; matarArvore(j.proc); }
       enviarJson(res, 200, { ok: true });
       console.log('Encerrado pela interface.');
@@ -657,7 +698,7 @@ server.listen(PORT, '127.0.0.1', async () => {
   console.log('Baixa Tudo rodando em http://localhost:' + PORT + (OCULTO ? ' (sem janela)' : ''));
   if (ABRIR) abrirNavegador();
   if (OCULTO) setInterval(() => {
-    const ocupado = jobAtivo || jobs.some(j => j.status === 'fila') || setup.atualizando || setup.ffmpegInstalando;
+    const ocupado = jobAtivo || jobs.some(j => j.status === 'fila') || conversor.ocupado() || setup.atualizando || setup.ffmpegInstalando;
     if (!ocupado && Date.now() - ultimoAcesso > ENCERRAR_APOS_MS) { console.log('Pagina fechada ha 5 min e nada baixando: encerrando.'); process.exit(0); }
   }, 30000);
   if (setup.nodeAntigo) console.log('[AVISO] Node ' + process.versions.node + ' e antigo; o yt-dlp precisa do Node 20+ para resolver os desafios do YouTube.');

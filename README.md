@@ -111,6 +111,21 @@ Video e audio vem separados do YouTube e o FFmpeg junta os dois no final (status
 Os videos vao para uma pasta propria (**Pasta onde os videos sao salvos**, padrao
 `Videos\Baixa Tudo`), separada das musicas. Capitulos, titulo e capa sao gravados no arquivo.
 
+### Converter audio
+
+Aba **Converter audio**: arraste arquivos de audio ou video (ate 30 por vez) ou clique para
+escolher, e selecione o formato de saida: **MP3, M4A (AAC), OPUS, OGG, FLAC ou WAV**. Os arquivos
+convertidos vao para a **Pasta das conversoes** (padrao: `Convertidos` dentro da pasta dos audios).
+
+- **Rapido:** uma musica de 4 min leva de 1 a 5 s; varias conversoes rodam em paralelo
+  (ate 3, conforme os nucleos do processador).
+- **Sem reconversao quando possivel:** se o audio ja esta no codec escolhido (ex.: AAC -> M4A,
+  MP3 -> MP3), ele so e copiado: instantaneo e sem perda (etiqueta "sem reconversao").
+- **Video de entrada** (MP4, MKV, WEBM...): extrai a faixa de audio.
+- Mantem titulo/artista/album e, em MP3, M4A e FLAC, a capa.
+- Conversao entre formatos com perda (MP3, AAC, OPUS, OGG) recebe a etiqueta "com perda":
+  perde um pouco de qualidade, e subir o bitrate nao recupera o que ja foi perdido.
+
 ### Configuracoes
 
 - **Pastas de saida**: audios em `Musicas\Baixa Tudo` e videos em `Videos\Baixa Tudo` (padrao). O botao **Escolher...** abre o
@@ -155,6 +170,7 @@ Se o antivirus apagar `bin\yt-dlp.exe`, adicione uma excecao para a pasta `bin` 
 | `baixatudo.ico` | Icone do atalho |
 | `INICIAR BAIXA TUDO.bat` | Mesmo que o .vbs (alternativa se o VBScript estiver desativado) |
 | `DIAGNOSTICO (com janela).bat` | Inicia com a janela de prompt visivel |
+| `conversor.js` | Conversao de audio (FFmpeg), com fila em paralelo |
 | `server.js` | Servidor local, fila de downloads e chamadas ao yt-dlp |
 | `ui.html` | Interface |
 | `config.json` | Suas preferencias (criado ao salvar) |

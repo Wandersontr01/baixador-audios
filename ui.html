@@ -98,6 +98,24 @@
   .nota{font-size:12.5px;color:var(--mut);margin-top:10px;display:flex;gap:8px;align-items:flex-start}
   .nota.warn{color:var(--warn)}
 
+  /* ---------- abas principais ---------- */
+  .abas{display:flex;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+  .abas button{background:transparent;color:var(--mut);border:none;border-bottom:2px solid transparent;border-radius:0;padding:10px 16px;font-size:14.5px;display:inline-flex;align-items:center;gap:8px;margin-bottom:-1px}
+  .abas button svg{width:17px;height:17px}
+  .abas button.on{color:var(--txt);border-bottom-color:var(--acc)}
+  .abas button:hover{filter:none;color:var(--txt)}
+  .abas .n{font-size:11px;background:var(--accbg);color:var(--acc2);border-radius:999px;padding:0 7px;font-weight:700}
+
+  /* ---------- conversor ---------- */
+  .drop{border:1.5px dashed var(--line2);border-radius:14px;padding:30px 18px;text-align:center;cursor:pointer;background:var(--bg2);transition:border-color .15s, background .15s}
+  .drop:hover,.drop.sobre{border-color:var(--acc);background:var(--accbg)}
+  .drop svg{width:34px;height:34px;color:var(--acc2);margin-bottom:6px}
+  .drop b{display:block;font-size:15px;margin-bottom:4px}
+  .drop span{font-size:12.5px;color:var(--mut)}
+  .tag{font-size:11px;padding:1px 8px;border-radius:999px;font-weight:700;white-space:nowrap;background:var(--bg2);color:var(--mut);border:1px solid var(--line)}
+  .tag.ok{background:var(--okbg);color:var(--ok);border-color:transparent}
+  .tag.warn{background:var(--warnbg);color:var(--warn);border-color:transparent}
+
   /* ---------- avisos ---------- */
   .banner{border-radius:12px;padding:11px 14px;margin-bottom:16px;font-size:13px;border:1px solid}
   .banner.warn{background:var(--warnbg);border-color:color-mix(in srgb, var(--warn) 40%, transparent)}
@@ -186,6 +204,12 @@
   <div id="bannerYt" class="banner hide"></div>
   <div id="bannerNode" class="banner warn hide"></div>
 
+  <nav class="abas" role="tablist">
+    <button id="abaBaixar" class="on" data-aba="baixar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Baixar <span class="n hide" id="nBaixar"></span></button>
+    <button id="abaConverter" data-aba="converter"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13"/><path d="m14 4 3 3-3 3"/><path d="M20 17H7"/><path d="m10 14-3 3 3 3"/></svg>Converter áudio <span class="n hide" id="nConverter"></span></button>
+  </nav>
+
+  <div id="painelBaixar">
   <section class="card">
     <div class="row">
       <div class="seg" role="tablist" aria-label="O que baixar">
@@ -264,6 +288,51 @@
     </h2>
     <div id="lista"></div>
   </section>
+  </div>
+
+  <div id="painelConverter" class="hide">
+  <section class="card">
+    <h2>Converter áudio</h2>
+    <div id="drop" class="drop" tabindex="0" role="button" aria-label="Escolher arquivos para converter">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M20 16v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3"/></svg>
+      <b>Arraste arquivos de áudio ou vídeo para cá</b>
+      <span>ou clique para escolher · até 30 por vez · MP3, M4A, OPUS, OGG, FLAC, WAV, MP4, MKV, WEBM…</span>
+      <input type="file" id="convArquivos" multiple accept="audio/*,video/*,.m4a,.opus,.ogg,.flac,.wav,.mp3,.aac,.wma,.mkv,.webm,.mp4,.mov,.avi" class="hide">
+    </div>
+    <div class="opcoes" style="border-top:none;padding-top:0">
+      <div>
+        <label for="convFormato">Converter para</label>
+        <select id="convFormato">
+          <option value="mp3">MP3 — toca em tudo</option>
+          <option value="m4a">M4A (AAC) — boa qualidade, celulares Apple</option>
+          <option value="opus">OPUS — menor tamanho</option>
+          <option value="ogg">OGG (Vorbis)</option>
+          <option value="flac">FLAC — sem perda</option>
+          <option value="wav">WAV — sem compressão</option>
+        </select>
+      </div>
+      <div id="convQWrap">
+        <label for="convQualidade">Qualidade</label>
+        <select id="convQualidade">
+          <option value="128">128 kbps</option>
+          <option value="192">192 kbps</option>
+          <option value="256">256 kbps</option>
+          <option value="320">320 kbps</option>
+        </select>
+      </div>
+    </div>
+    <div class="nota">ⓘ <span id="convDica">Se o arquivo já estiver no formato escolhido (ex.: AAC → M4A), o áudio é só copiado: instantâneo e sem perda. Converter entre formatos com perda (MP3, AAC, OPUS, OGG) perde um pouco de qualidade, e subir o bitrate não recupera o que já foi perdido.</span></div>
+  </section>
+
+  <section class="card">
+    <h2>Conversões <span id="contConv" class="cont hide"></span><span class="sp"></span>
+      <button class="verm mini hide" id="btnConvCancelarTodos">Cancelar todas</button>
+      <button class="ghost mini" id="btnConvAbrir">Abrir pasta</button>
+      <button class="ghost mini" id="btnConvLimpar">Limpar concluídas</button>
+    </h2>
+    <div id="listaConv"></div>
+  </section>
+  </div>
 
   <details class="card" id="cfgBox">
     <summary>Configurações <span class="seta">▾</span></summary>
@@ -282,6 +351,14 @@
           <input type="text" id="pastaVid" class="grow">
           <button class="ghost" data-escolher="pastaVid">Escolher…</button>
           <button data-salvar="pastaVid">Salvar</button>
+        </div>
+      </div>
+      <div class="campo">
+        <label for="pastaConv">Pasta das conversões <span class="muted" style="font-weight:400">(vazio = "Convertidos" dentro da pasta dos áudios)</span></label>
+        <div class="row">
+          <input type="text" id="pastaConv" class="grow" placeholder="">
+          <button class="ghost" data-escolher="pastaConv">Escolher…</button>
+          <button data-salvar="pastaConv">Salvar</button>
         </div>
       </div>
       <div class="campo row" style="gap:22px">
@@ -451,6 +528,11 @@ function renderConfig(c) {
   cfgCarregada = true;
   $('pasta').value = c.pastaSaida;
   $('pastaVid').value = c.pastaVideos;
+  $('pastaConv').value = c.pastaConvertidos || '';
+  $('pastaConv').placeholder = c.pastaConversoesEfetiva || '';
+  $('convFormato').value = c.formatoConversao || 'mp3';
+  $('convQualidade').value = c.qualidadeConversao || '192';
+  atualizarConvOpcoes();
   $('formatoVideo').value = c.formatoVideo;
   $('resolucao').value = c.resolucao;
   $('legendas').checked = !!c.legendas;
@@ -467,6 +549,7 @@ async function atualizar() {
     renderConfig(estado.config);
     renderSetup(estado.setup);
     renderJobs(estado.jobs);
+    renderConversoes(estado.conversoes || []);
   } catch (e) {
     $('bYt').className = 'badge bad'; $('bYt').textContent = 'Servidor fechado';
     $('bannerYt').className = 'banner bad';
@@ -758,7 +841,7 @@ $('selBaixar').onclick = async () => {
 };
 
 async function salvarCfg(parcial, msg) {
-  try { const r = await api('/api/config', parcial); $('pasta').value = r.config.pastaSaida; $('pastaVid').value = r.config.pastaVideos; if (msg) toast(msg); }
+  try { const r = await api('/api/config', parcial); $('pasta').value = r.config.pastaSaida; $('pastaVid').value = r.config.pastaVideos; $('pastaConv').value = r.config.pastaConvertidos || ''; if (msg) toast(msg); }
   catch (e) { toast(e.message, 6000); }
 }
 
@@ -773,7 +856,7 @@ $('formato').onchange = () => { $('qWrap').classList.toggle('hide', !temQualidad
 $('qualidade').onchange = () => salvarCfg({ qualidadeMp3: $('qualidade').value });
 $('pular').onchange = () => salvarCfg({ pularBaixados: $('pular').checked });
 $('cookies').onchange = () => salvarCfg({ cookiesNavegador: $('cookies').value }, $('cookies').value ? 'Vai usar os cookies do ' + $('cookies').selectedOptions[0].text : 'Cookies desativados');
-const CAMPO_PASTA = { pasta: 'pastaSaida', pastaVid: 'pastaVideos' };
+const CAMPO_PASTA = { pasta: 'pastaSaida', pastaVid: 'pastaVideos', pastaConv: 'pastaConvertidos' };
 document.querySelectorAll('[data-salvar]').forEach(b => b.onclick = () => {
   const id = b.dataset.salvar; salvarCfg({ [CAMPO_PASTA[id]]: $(id).value }, 'Pasta salva');
 });
@@ -839,6 +922,109 @@ $('modal').onclick = e => { if (e.target === $('modal')) $('modal').classList.ad
 // bookmarklet: abre esta pagina com ?add=<url do video>
 $('bookmarklet').href = "javascript:(()=>{window.open('" + location.origin + "/?add='+encodeURIComponent(location.href),'baixa-tudo')})()";
 $('bookmarklet').onclick = e => { e.preventDefault(); toast('Arraste este botão para a barra de favoritos.'); };
+
+// ---------- abas ----------
+function mostrarAba(a) {
+  $('abaBaixar').classList.toggle('on', a === 'baixar');
+  $('abaConverter').classList.toggle('on', a === 'converter');
+  $('painelBaixar').classList.toggle('hide', a !== 'baixar');
+  $('painelConverter').classList.toggle('hide', a !== 'converter');
+  try { localStorage.setItem('aba', a); } catch (e) {}
+}
+$('abaBaixar').onclick = () => mostrarAba('baixar');
+$('abaConverter').onclick = () => mostrarAba('converter');
+
+// ---------- conversor ----------
+const SEM_PERDA = { flac: 1, wav: 1 };
+const NOME_CODEC = { mp3: 'MP3', aac: 'AAC', opus: 'OPUS', vorbis: 'Vorbis', flac: 'FLAC', alac: 'ALAC', wmav2: 'WMA', ac3: 'AC-3', eac3: 'E-AC-3' };
+const nomeCodec = c => NOME_CODEC[c] || (/^pcm_/.test(c || '') ? 'PCM' : String(c || '?').toUpperCase());
+const fmtTam = b => !b ? '' : b < 1048576 ? (b / 1024).toFixed(0) + ' KB' : b < 1073741824 ? (b / 1048576).toFixed(1) + ' MB' : (b / 1073741824).toFixed(2) + ' GB';
+const NOMES_CONV = { recebendo: 'Enviando', fila: 'Na fila', convertendo: 'Convertendo', concluido: 'Concluído', erro: 'Erro', cancelado: 'Cancelado' };
+const ATIVOS_CONV = ['recebendo', 'fila', 'convertendo'];
+
+function atualizarConvOpcoes() {
+  $('convQWrap').classList.toggle('hide', !!SEM_PERDA[$('convFormato').value]);
+}
+$('convFormato').onchange = () => { atualizarConvOpcoes(); salvarCfg({ formatoConversao: $('convFormato').value }); };
+$('convQualidade').onchange = () => salvarCfg({ qualidadeConversao: $('convQualidade').value });
+
+let filaEnvio = Promise.resolve();
+function enviarParaConverter(arquivos) {
+  arquivos = [...arquivos].filter(f => f && f.size);
+  if (!arquivos.length) return;
+  if (!estado?.setup?.ffmpeg) { toast('A conversão precisa do FFmpeg (veja Configurações).', 6000); return; }
+  if (arquivos.length > MAX) { toast('Limite de ' + MAX + ' arquivos por vez (você escolheu ' + arquivos.length + ').', 6000); return; }
+  const formato = $('convFormato').value, qualidade = $('convQualidade').value;
+  toast(arquivos.length + ' arquivo(s) enviado(s) para conversão em ' + formato.toUpperCase() + '.');
+  // envia um por vez (cada envio e uma copia local, rapida); a conversao roda em paralelo no servidor
+  for (const f of arquivos) {
+    filaEnvio = filaEnvio.then(() => fetch('/api/converter/enviar?' + new URLSearchParams({ nome: f.name, formato, qualidade }), {
+      method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: f
+    }).then(async r => { if (!r.ok) toast((await r.json().catch(() => ({}))).erro || 'Falha ao enviar ' + f.name, 6000); })
+      .catch(() => toast('Falha ao enviar ' + f.name, 6000))
+      .finally(atualizar));
+  }
+}
+$('drop').onclick = () => $('convArquivos').click();
+$('drop').onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('convArquivos').click(); } };
+$('convArquivos').onchange = () => { enviarParaConverter($('convArquivos').files); $('convArquivos').value = ''; };
+['dragenter', 'dragover'].forEach(ev => $('drop').addEventListener(ev, e => { e.preventDefault(); $('drop').classList.add('sobre'); }));
+['dragleave', 'drop'].forEach(ev => $('drop').addEventListener(ev, e => { e.preventDefault(); $('drop').classList.remove('sobre'); }));
+$('drop').addEventListener('drop', e => enviarParaConverter(e.dataTransfer.files));
+// soltar arquivos em qualquer lugar da aba Converter tambem funciona
+document.addEventListener('dragover', e => { if (!$('painelConverter').classList.contains('hide')) e.preventDefault(); });
+document.addEventListener('drop', e => {
+  if ($('painelConverter').classList.contains('hide') || e.target.closest('#drop')) return;
+  e.preventDefault(); enviarParaConverter(e.dataTransfer.files);
+});
+
+function renderConversoes(lista) {
+  const pend = lista.filter(c => ATIVOS_CONV.includes(c.status)).length;
+  $('btnConvCancelarTodos').classList.toggle('hide', !pend);
+  $('btnConvCancelarTodos').textContent = 'Cancelar todas (' + pend + ')';
+  $('contConv').classList.toggle('hide', !lista.length);
+  $('contConv').textContent = lista.length;
+  $('nConverter').classList.toggle('hide', !pend); $('nConverter').textContent = pend;
+  const pendB = (estado?.jobs || []).filter(j => ['fila','baixando','convertendo'].includes(j.status)).length;
+  $('nBaixar').classList.toggle('hide', !pendB); $('nBaixar').textContent = pendB;
+  const el = $('listaConv');
+  if (!lista.length) { el.innerHTML = '<div class="vazio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h13"/><path d="m14 4 3 3-3 3"/><path d="M20 17H7"/><path d="m10 14-3 3 3 3"/></svg>Nenhuma conversão ainda. Arraste arquivos para a área acima.</div>'; return; }
+  el.innerHTML = lista.slice().reverse().map(c => {
+    const pct = c.status === 'recebendo' ? (c.tamanho ? c.recebido / c.tamanho * 100 : 0) : c.status === 'concluido' ? 100 : (c.pct || 0);
+    const destino = c.formato.toUpperCase() + (SEM_PERDA[c.formato] || c.copia ? '' : (c.formato === 'ogg' ? ' ~' : ' ') + c.qualidade + ' kbps');
+    const origem = c.origem ? nomeCodec(c.origem.codec) + (c.origem.kbps && c.origem.perda ? ' ' + c.origem.kbps + ' kbps' : '') + (c.origem.ehVideo ? ' (de vídeo)' : '') : '';
+    const tags = (c.copia ? '<span class="tag ok" title="O áudio já estava nesse formato: só foi copiado, sem perda">sem reconversão</span>' : '') +
+      (c.perdaDupla ? '<span class="tag warn" title="Conversão entre formatos com perda: perde um pouco de qualidade">com perda</span>' : '');
+    let meta = (origem ? origem + ' → ' : '') + destino;
+    if (c.status === 'recebendo') meta += ' · enviando ' + pct.toFixed(0) + '%';
+    if (c.status === 'convertendo') meta += ' · ' + pct.toFixed(0) + '%';
+    if (c.origem && c.origem.duracao) meta += ' · ' + fmtDur(c.origem.duracao);
+    meta += ' · ' + fmtTam(c.tamanho) + (c.tamanhoSaida ? ' → ' + fmtTam(c.tamanhoSaida) : '');
+    const acts = (ATIVOS_CONV.includes(c.status) ? '<button class="verm mini" data-c="cancelar" data-id="' + c.id + '">Cancelar</button>' : '') +
+      (c.saida ? '<button class="ghost mini" data-c="abrir" data-id="' + c.id + '">Mostrar</button>' : '');
+    const barCls = c.status === 'concluido' ? 'done' : c.status === 'recebendo' ? 'conv' : '';
+    return '<div class="job"><div class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg></div>' +
+      '<div class="corpo"><div class="top"><div style="min-width:0;flex:1"><div class="tit">' + esc(c.nome) + '</div>' +
+      '<div class="sub"><span class="pill st-' + (c.status === 'recebendo' ? 'baixando' : c.status) + '">' + NOMES_CONV[c.status] + '</span>' + tags + '</div></div>' +
+      '<div class="acts">' + acts + '</div></div>' +
+      (['recebendo', 'convertendo', 'concluido'].includes(c.status) ? '<div class="bar ' + barCls + '"><div style="width:' + pct + '%"></div></div>' : '') +
+      '<div class="meta">' + meta + '</div>' +
+      (c.saida ? '<div class="meta ok">' + esc(c.saida) + '</div>' : '') +
+      (c.erro ? '<div class="err">' + esc(c.erro) + '</div>' : '') + '</div></div>';
+  }).join('');
+}
+$('listaConv').onclick = async e => {
+  const b = e.target.closest('button[data-c]'); if (!b) return;
+  try { await api('/api/converter/' + b.dataset.c, { id: +b.dataset.id }); atualizar(); } catch (err) { toast(err.message); }
+};
+$('btnConvAbrir').onclick = () => api('/api/converter/abrir', {}).catch(e => toast(e.message));
+$('btnConvLimpar').onclick = () => api('/api/converter/limpar', {}).then(atualizar);
+$('btnConvCancelarTodos').onclick = async () => {
+  const n = (estado?.conversoes || []).filter(c => ATIVOS_CONV.includes(c.status)).length;
+  if (!n || !confirm('Cancelar ' + n + ' conversão(ões) em andamento ou na fila?\n\nAs que já terminaram continuam na pasta.')) return;
+  const r = await api('/api/converter/cancelar-todos', {}); toast(r.cancelados + ' conversão(ões) cancelada(s).'); atualizar();
+};
+try { if (localStorage.getItem('aba') === 'converter') mostrarAba('converter'); } catch (e) {}
 
 renderFunciona();
 renderDetectados();
