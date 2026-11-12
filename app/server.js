@@ -26,7 +26,7 @@ const YTDLP_ASSET = IS_WIN ? 'yt-dlp.exe' : (process.platform === 'darwin' ? 'yt
 const YTDLP_URL = 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/' + YTDLP_ASSET;
 const NODE_MAJOR = parseInt(process.versions.node.split('.')[0], 10);
 
-// --oculto: iniciado pelo ABRIR BAIXA TUDO.vbs, sem janela. Saida vai para baixatudo.log
+// --oculto: iniciado pelo "Baixa Tudo.vbs" (fora da pasta app), sem janela. Saida vai para baixatudo.log
 // e o servidor se encerra sozinho quando a pagina fica fechada e nada esta baixando.
 // --abrir: abre o navegador ao iniciar (ou, se ja estiver rodando, so abre a pagina).
 const OCULTO = process.argv.includes('--oculto');

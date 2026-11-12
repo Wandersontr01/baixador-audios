@@ -89,7 +89,7 @@ try {
   } else { Write-Host '[3/3] FFmpeg ja existe.' }
 
   Write-Host ''
-  Write-Host 'Tudo pronto. Abra o "ABRIR BAIXA TUDO.vbs".' -ForegroundColor Green
+  Write-Host 'Tudo pronto. Abra o "Baixa Tudo.vbs" (fora da pasta app).' -ForegroundColor Green
   exit 0
 } catch {
   Write-Host ''

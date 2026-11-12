@@ -18,7 +18,8 @@ A interface roda no navegador; o backend (Node) usa o **yt-dlp** e o **FFmpeg**.
 2. Baixe o **`BaixaTudo-portatil.zip`**. Ele ja vem com Node, yt-dlp e FFmpeg dentro.
 3. Botao direito no ZIP > **Propriedades** > marque **Desbloquear** > OK (evita o aviso de
    seguranca do Windows ao abrir).
-4. Extraia onde quiser (ex.: `Documentos\Baixa Tudo`) e abra o **`ABRIR BAIXA TUDO.vbs`**.
+4. Extraia onde quiser (ex.: `Documentos\Baixa Tudo`) e abra o **`Baixa Tudo.vbs`**, o unico arquivo
+   fora da pasta `app`.
 5. Na primeira vez ele oferece criar um **atalho na Area de Trabalho**. Depois e so clicar no icone.
 
 Nada e instalado no Windows e nao ha etapa de preparacao. A versao portatil e gerada
@@ -28,7 +29,7 @@ manualmente em **Actions > Versao portatil > Run workflow**.
 ### Para mexer no codigo: git clone (ou Code > Download ZIP)
 
 Os executaveis **nao** ficam no git (o `avcodec` sozinho passa do limite de 100 MB do GitHub).
-Nessa forma, a primeira abertura do `ABRIR BAIXA TUDO.vbs` pergunta e roda o `PREPARAR.bat`, que
+Nessa forma, a primeira abertura do `Baixa Tudo.vbs` pergunta e roda o `app\PREPARAR.bat`, que
 baixa os executaveis para dentro da pasta.
 
 ```
@@ -37,7 +38,7 @@ git clone https://github.com/Wandersontr01/baixa-tudo.git
 
 ### O que o PREPARAR baixa (so na forma git/ZIP do codigo)
 
-Na primeira abertura do **`ABRIR BAIXA TUDO.vbs`** ele pergunta e roda o **`PREPARAR.bat`**, que
+Na primeira abertura do **`Baixa Tudo.vbs`** ele pergunta e roda o **`app\PREPARAR.bat`**, que
 baixa para dentro da pasta (nada e instalado no Windows):
 
 | Pasta | Conteudo | Origem |
@@ -47,7 +48,7 @@ baixa para dentro da pasta (nada e instalado no Windows):
 | `bin\ffmpeg.exe`, `ffprobe.exe` e `.dll` | Conversao e capa/titulo | GitHub yt-dlp/FFmpeg-Builds |
 
 Cada download e conferido pelo SHA-256 publicado pelo proprio projeto. Para baixar tudo de novo:
-`PREPARAR.bat -Forcar`.
+`app\PREPARAR.bat -Forcar`.
 
 ### Atualizar para uma versao nova
 
@@ -67,14 +68,14 @@ sao por maquina e ficam fora do git.
 
 ## Como usar
 
-1. Duplo-clique em **`ABRIR BAIXA TUDO.vbs`**. O servidor roda escondido (sem janela de prompt)
+1. Duplo-clique em **`Baixa Tudo.vbs`** (ou no atalho). O servidor roda escondido (sem janela de prompt)
    e o navegador abre em http://localhost:3940.
    - Se ja estiver rodando, o duplo-clique so abre a pagina de novo.
    - Para encerrar: botao **Encerrar** no topo da pagina. Ele tambem se encerra sozinho 5 minutos
      depois que a pagina e fechada, se nada estiver baixando.
    - A saida do servidor fica em `baixatudo.log`.
-   - O **`INICIAR BAIXA TUDO.bat`** faz o mesmo (pisca uma janela por meio segundo e fecha).
-   - **`DIAGNOSTICO (com janela).bat`**: o mesmo app com a janela preta mostrando tudo, para
+   - O **`app\INICIAR BAIXA TUDO.bat`** faz o mesmo (pisca uma janela por meio segundo e fecha).
+   - **`app\DIAGNOSTICO (com janela).bat`**: o mesmo app com a janela preta mostrando tudo, para
      investigar problemas.
 2. Cole um ou mais links (um por linha), escolha o formato e clique em **Baixar audio**
    (ou use **Ctrl+Enter** no campo).
@@ -164,19 +165,24 @@ Se o antivirus apagar `bin\yt-dlp.exe`, adicione uma excecao para a pasta `bin` 
 
 ## Arquivos
 
-| Arquivo | Funcao |
-|---|---|
-| `ABRIR BAIXA TUDO.vbs` | Inicia sem janela e abre o navegador; oferece o atalho na Area de Trabalho |
-| `baixatudo.ico` | Icone do atalho |
-| `INICIAR BAIXA TUDO.bat` | Mesmo que o .vbs (alternativa se o VBScript estiver desativado) |
-| `DIAGNOSTICO (com janela).bat` | Inicia com a janela de prompt visivel |
-| `conversor.js` | Conversao de audio (FFmpeg), com fila em paralelo |
-| `server.js` | Servidor local, fila de downloads e chamadas ao yt-dlp |
-| `ui.html` | Interface |
-| `config.json` | Suas preferencias (criado ao salvar) |
-| `runtime/` | Node.js portatil (baixado pelo PREPARAR, fora do git) |
-| `PREPARAR.bat` / `preparar.ps1` | Baixa os executaveis numa maquina nova |
-| `bin/` | yt-dlp, FFmpeg e FFprobe (baixados pelo PREPARAR, fora do git) |
+```
+Baixa Tudo\
+  Baixa Tudo.vbs                 <- o unico arquivo para executar
+  app\                           <- todo o resto
+    server.js                    servidor local, fila de downloads, chamadas ao yt-dlp
+    conversor.js                 conversao de audio (FFmpeg), fila em paralelo
+    ui.html                      interface
+    baixatudo.ico                icone do atalho
+    INICIAR BAIXA TUDO.bat       mesmo que o .vbs (se o VBScript estiver desativado)
+    DIAGNOSTICO (com janela).bat inicia com a janela de prompt visivel
+    PREPARAR.bat / preparar.ps1  baixa os executaveis (so na forma git)
+    bin\                         yt-dlp, FFmpeg e FFprobe
+    runtime\                     Node.js portatil
+    config.json, baixatudo.log   suas preferencias e o log (por maquina)
+```
+
+Ao extrair uma versao nova por cima de uma pasta antiga (arquivos soltos na raiz), o
+`Baixa Tudo.vbs` move configuracoes e executaveis para `app` e limpa a raiz sozinho.
 
 Uso pessoal: baixar conteudo do YouTube vai contra os Termos de Servico da plataforma, exceto
 quando o conteudo e seu ou tem licenca que permita.

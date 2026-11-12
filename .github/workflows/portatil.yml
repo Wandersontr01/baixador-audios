@@ -21,20 +21,23 @@ jobs:
         run: |
           set -euo pipefail
           D="Baixa Tudo"
-          mkdir -p "$D/bin" "$D/runtime" tmp
-          # codigo do projeto (sem a pasta .github)
-          git ls-files -z | grep -zv '^\.github/' | xargs -0 -I{} cp --parents "{}" "$D/"
+          mkdir -p tmp
+          # raiz: so o "Baixa Tudo.vbs"; todo o resto (codigo, README, executaveis) em app/
+          cp "Baixa Tudo.vbs" "$D/"
+          git ls-files -z app | xargs -0 -I{} cp --parents "{}" "$D/"
+          cp README.md "$D/app/"
+          mkdir -p "$D/app/bin" "$D/app/runtime"
 
           # Node.js 24 LTS portatil (conferido pelo SHA-256 oficial)
           V=$(curl -fsSL https://nodejs.org/dist/index.json | jq -r '[.[] | select(.lts != false and (.version|startswith("v24.")) and (.files|index("win-x64-zip")))][0].version')
           curl -fsSL -o tmp/node.zip "https://nodejs.org/dist/$V/node-$V-win-x64.zip"
           curl -fsSL "https://nodejs.org/dist/$V/SHASUMS256.txt" | awk -v n="node-$V-win-x64.zip" '$2==n {print $1"  tmp/node.zip"}' | sha256sum -c -
-          unzip -q -j tmp/node.zip "node-$V-win-x64/node.exe" -d "$D/runtime"
+          unzip -q -j tmp/node.zip "node-$V-win-x64/node.exe" -d "$D/app/runtime"
 
           # yt-dlp (conferido pelo SHA-256 da release)
           Y=https://github.com/yt-dlp/yt-dlp/releases/latest/download
-          curl -fsSL -o "$D/bin/yt-dlp.exe" "$Y/yt-dlp.exe"
-          curl -fsSL "$Y/SHA2-256SUMS" | awk -v f="$D/bin/yt-dlp.exe" '$2=="yt-dlp.exe" {print $1"  "f}' | sha256sum -c -
+          curl -fsSL -o "$D/app/bin/yt-dlp.exe" "$Y/yt-dlp.exe"
+          curl -fsSL "$Y/SHA2-256SUMS" | awk -v f="$D/app/bin/yt-dlp.exe" '$2=="yt-dlp.exe" {print $1"  "f}' | sha256sum -c -
 
           # FFmpeg do projeto yt-dlp (conferido pelo SHA-256)
           F=https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest
@@ -42,9 +45,9 @@ jobs:
           curl -fsSL -o "tmp/$Z" "$F/$Z"
           curl -fsSL "$F/checksums.sha256" | awk -v z="$Z" '$2==z {print $1"  tmp/"z}' | sha256sum -c -
           unzip -q "tmp/$Z" -d tmp/ff
-          cp tmp/ff/*/bin/*.exe tmp/ff/*/bin/*.dll "$D/bin/"
-          rm -f "$D/bin/ffplay.exe"
-          cp tmp/ff/*/LICENSE.txt "$D/bin/FFMPEG-LICENSE.txt" || true
+          cp tmp/ff/*/bin/*.exe tmp/ff/*/bin/*.dll "$D/app/bin/"
+          rm -f "$D/app/bin/ffplay.exe"
+          cp tmp/ff/*/LICENSE.txt "$D/app/bin/FFMPEG-LICENSE.txt" || true
 
           { echo "NODE_V=$V"; echo "YTDLP_V=$(curl -fsSL https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest | jq -r .tag_name)"; } >> "$GITHUB_ENV"
           du -sh "$D"
@@ -58,7 +61,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then TAG="$GITHUB_REF_NAME"; else TAG="portatil-$(date -u +%Y%m%d-%H%M)"; fi
-          NOTAS="Versao portatil para Windows 64 bits: extraia o ZIP e abra o ABRIR BAIXA TUDO.vbs. Nada a instalar.
+          NOTAS="Versao portatil para Windows 64 bits: extraia o ZIP e abra o Baixa Tudo.vbs. Nada a instalar.
 
           Inclui Node.js $NODE_V, yt-dlp $YTDLP_V e FFmpeg (build do projeto yt-dlp), todos conferidos pelo SHA-256 publicado por cada projeto."
           gh release create "$TAG" BaixaTudo-portatil.zip --target "$GITHUB_SHA" --title "Baixa Tudo $TAG" --notes "$NOTAS" --latest
