@@ -21,12 +21,11 @@ jobs:
         run: |
           set -euo pipefail
           D="Baixa Tudo"
-          mkdir -p tmp
+          mkdir -p "$D/app/bin" "$D/app/runtime" tmp
           # raiz: so o "Baixa Tudo.vbs"; todo o resto (codigo, README, executaveis) em app/
           cp "Baixa Tudo.vbs" "$D/"
           git ls-files -z app | xargs -0 -I{} cp --parents "{}" "$D/"
           cp README.md "$D/app/"
-          mkdir -p "$D/app/bin" "$D/app/runtime"
 
           # Node.js 24 LTS portatil (conferido pelo SHA-256 oficial)
           V=$(curl -fsSL https://nodejs.org/dist/index.json | jq -r '[.[] | select(.lts != false and (.version|startswith("v24.")) and (.files|index("win-x64-zip")))][0].version')
